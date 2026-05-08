@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
 
-import { LighthouseIcon } from "@/components/icons/Icons";
 import { cn } from "@/lib/utils";
 
 export interface CustomBreadcrumbItem {
@@ -50,7 +49,6 @@ export function BreadcrumbNavigation({
       "/scans": "lucide:activity",
       "/roles": "lucide:key",
       "/resources": "lucide:database",
-      "/lighthouse": <LighthouseIcon />,
       "/manage-groups": "lucide:users-2",
       "/services": "lucide:server",
       "/workloads": "lucide:layers",
@@ -80,10 +78,6 @@ export function BreadcrumbNavigation({
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
       }
-      if (segment === "lighthouse") {
-        displayName = "Lighthouse AI";
-      }
-
       const segmentIcon = !isLast ? pathIconMapping[currentPath] : undefined;
 
       breadcrumbs.push({

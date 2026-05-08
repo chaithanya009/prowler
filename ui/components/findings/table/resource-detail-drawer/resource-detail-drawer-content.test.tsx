@@ -489,38 +489,7 @@ const mockResourceRow: FindingResourceRow = {
 };
 
 // ---------------------------------------------------------------------------
-// Fix 1: Lighthouse AI button text change
-// ---------------------------------------------------------------------------
-
-describe("ResourceDetailDrawerContent — Fix 1: Lighthouse AI button text", () => {
-  it("should say 'Analyze this finding with Lighthouse AI' instead of 'View This Finding'", () => {
-    // Given
-    const { container } = render(
-      <ResourceDetailDrawerContent
-        isLoading={false}
-        isNavigating={false}
-        checkMeta={mockCheckMeta}
-        currentIndex={0}
-        totalResources={1}
-        currentFinding={mockFinding}
-        otherFindings={[]}
-        onNavigatePrev={vi.fn()}
-        onNavigateNext={vi.fn()}
-        onMuteComplete={vi.fn()}
-      />,
-    );
-
-    // When — look for the lighthouse link
-    const allText = container.textContent ?? "";
-
-    // Then — correct text must be present, old text must be absent
-    expect(allText.toLowerCase()).toContain("analyze this finding");
-    expect(allText.toLowerCase()).not.toContain("view this finding");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Fix 2: Remediation heading labels — remove "Command" suffix
+// Fix 1: Remediation heading labels - remove "Command" suffix
 // ---------------------------------------------------------------------------
 
 describe("ResourceDetailDrawerContent — Fix 2: Remediation heading labels", () => {
@@ -1539,11 +1508,6 @@ describe("ResourceDetailDrawerContent — header skeleton while navigating", () 
     expect(screen.getByText("security")).toBeInTheDocument();
     expect(screen.queryByText("Status Extended:")).not.toBeInTheDocument();
     expect(screen.queryByText("uid-1")).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", {
-        name: "Analyze This Finding With Lighthouse AI",
-      }),
-    ).not.toBeInTheDocument();
   });
 
   it("should keep the overview tab shell visible with section skeletons when navigating to a different check", () => {
