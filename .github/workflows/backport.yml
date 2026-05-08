@@ -1,14 +1,13 @@
 name: 'Tools: Backport'
 
 on:
+  # zizmor: ignore[dangerous-triggers] - intentional: needs write access for backport PRs, no PR code checkout
   pull_request_target:
     branches:
       - 'master'
     types:
       - 'labeled'
       - 'closed'
-    paths:
-      - '.github/workflows/backport.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -17,6 +16,8 @@ concurrency:
 env:
   BACKPORT_LABEL_PREFIX: backport-to-
   BACKPORT_LABEL_IGNORE: was-backported
+
+permissions: {}
 
 jobs:
   backport:
@@ -28,6 +29,14 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+
       - name: Check labels
         id: label_check
         uses: agilepathway/label-checker@c3d16ad512e7cea5961df85ff2486bb774caf3c5 # v1.6.65
@@ -40,7 +49,7 @@ jobs:
 
       - name: Backport PR
         if: steps.label_check.outputs.label_check == 'success'
-        uses: sorenlouv/backport-github-action@ad888e978060bc1b2798690dd9d03c4036560947 # v9.5.1
+        uses: sorenlouv/backport-github-action@9460b7102fea25466026ce806c9ebf873ac48721 # v11.0.0
         with:
           github_token: ${{ secrets.PROWLER_BOT_ACCESS_TOKEN }}
           auto_backport_label_prefix: ${{ env.BACKPORT_LABEL_PREFIX }}

@@ -1,6 +1,6 @@
 {
   "Framework": "ENS",
-  "Name": "ENS RD 311/2022",
+  "Name": "ENS RD 311/2022 - Categoría Alta",
   "Version": "RD2022",
   "Provider": "AWS",
   "Description": "The accreditation scheme of the ENS (National Security Scheme) has been developed by the Ministry of Finance and Public Administrations and the CCN (National Cryptological Center). This includes the basic principles and minimum requirements necessary for the adequate protection of information.",
@@ -542,6 +542,8 @@
         }
       ],
       "Checks": [
+        "iam_role_access_not_stale_to_bedrock",
+        "iam_user_access_not_stale_to_bedrock",
         "iam_user_accesskey_unused",
         "iam_user_console_access_unused"
       ]

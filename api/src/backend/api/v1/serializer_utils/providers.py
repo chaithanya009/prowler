@@ -193,6 +193,22 @@ from rest_framework_json_api import serializers
             },
             {
                 "type": "object",
+                "title": "Google Workspace Service Account",
+                "properties": {
+                    "credentials_content": {
+                        "type": "string",
+                        "description": "The service account JSON credentials content for Google Workspace API access with domain-wide delegation enabled.",
+                    },
+                    "delegated_user": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "The email address of the Google Workspace super admin user to impersonate for domain-wide delegation.",
+                    },
+                },
+                "required": ["credentials_content", "delegated_user"],
+            },
+            {
+                "type": "object",
                 "title": "Kubernetes Static Credentials",
                 "properties": {
                     "kubeconfig_content": {
@@ -238,6 +254,166 @@ from rest_framework_json_api import serializers
                     },
                 },
                 "required": ["github_app_id", "github_app_key"],
+            },
+            {
+                "type": "object",
+                "title": "IaC Repository Credentials",
+                "properties": {
+                    "repository_url": {
+                        "type": "string",
+                        "description": "Repository URL to scan for IaC files.",
+                    },
+                    "access_token": {
+                        "type": "string",
+                        "description": "Optional access token for private repositories.",
+                    },
+                },
+                "required": ["repository_url"],
+            },
+            {
+                "type": "object",
+                "title": "Oracle Cloud Infrastructure (OCI) API Key Credentials",
+                "properties": {
+                    "user": {
+                        "type": "string",
+                        "description": "The OCID of the user to authenticate with.",
+                    },
+                    "fingerprint": {
+                        "type": "string",
+                        "description": "The fingerprint of the API signing key.",
+                    },
+                    "key_file": {
+                        "type": "string",
+                        "description": "The path to the private key file for API signing. Either key_file or key_content must be provided.",
+                    },
+                    "key_content": {
+                        "type": "string",
+                        "description": "The content of the private key for API signing (base64 encoded). Either key_file or key_content must be provided.",
+                    },
+                    "tenancy": {
+                        "type": "string",
+                        "description": "The OCID of the tenancy.",
+                    },
+                    "region": {
+                        "type": "string",
+                        "description": "The OCI region identifier (e.g., us-ashburn-1, us-phoenix-1).",
+                    },
+                    "pass_phrase": {
+                        "type": "string",
+                        "description": "The passphrase for the private key, if encrypted.",
+                    },
+                },
+                "required": ["user", "fingerprint", "tenancy", "region"],
+            },
+            {
+                "type": "object",
+                "title": "MongoDB Atlas API Key",
+                "properties": {
+                    "atlas_public_key": {
+                        "type": "string",
+                        "description": "MongoDB Atlas API public key.",
+                    },
+                    "atlas_private_key": {
+                        "type": "string",
+                        "description": "MongoDB Atlas API private key.",
+                    },
+                },
+                "required": ["atlas_public_key", "atlas_private_key"],
+            },
+            {
+                "type": "object",
+                "title": "Alibaba Cloud Static Credentials",
+                "properties": {
+                    "access_key_id": {
+                        "type": "string",
+                        "description": "The Alibaba Cloud access key ID for authentication.",
+                    },
+                    "access_key_secret": {
+                        "type": "string",
+                        "description": "The Alibaba Cloud access key secret for authentication.",
+                    },
+                    "security_token": {
+                        "type": "string",
+                        "description": "The STS security token for temporary credentials (optional).",
+                    },
+                },
+                "required": ["access_key_id", "access_key_secret"],
+            },
+            {
+                "type": "object",
+                "title": "Alibaba Cloud RAM Role Assumption",
+                "properties": {
+                    "role_arn": {
+                        "type": "string",
+                        "description": "The ARN of the RAM role to assume (e.g., acs:ram::1234567890123456:role/ProwlerRole).",
+                    },
+                    "access_key_id": {
+                        "type": "string",
+                        "description": "The Alibaba Cloud access key ID of the RAM user that will assume the role.",
+                    },
+                    "access_key_secret": {
+                        "type": "string",
+                        "description": "The Alibaba Cloud access key secret of the RAM user that will assume the role.",
+                    },
+                    "role_session_name": {
+                        "type": "string",
+                        "description": "An identifier for the role session (optional, defaults to 'ProwlerSession').",
+                    },
+                },
+                "required": ["role_arn", "access_key_id", "access_key_secret"],
+            },
+            {
+                "type": "object",
+                "title": "Cloudflare API Token",
+                "properties": {
+                    "api_token": {
+                        "type": "string",
+                        "description": "Cloudflare API Token for authentication (recommended).",
+                    },
+                },
+                "required": ["api_token"],
+            },
+            {
+                "type": "object",
+                "title": "Cloudflare API Key + Email",
+                "properties": {
+                    "api_key": {
+                        "type": "string",
+                        "description": "Cloudflare Global API Key for authentication (legacy).",
+                    },
+                    "api_email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address associated with the Cloudflare account.",
+                    },
+                },
+                "required": ["api_key", "api_email"],
+            },
+            {
+                "type": "object",
+                "title": "OpenStack clouds.yaml Credentials",
+                "properties": {
+                    "clouds_yaml_content": {
+                        "type": "string",
+                        "description": "The full content of a clouds.yaml configuration file.",
+                    },
+                    "clouds_yaml_cloud": {
+                        "type": "string",
+                        "description": "The name of the cloud to use from the clouds.yaml file.",
+                    },
+                },
+                "required": ["clouds_yaml_content", "clouds_yaml_cloud"],
+            },
+            {
+                "type": "object",
+                "title": "Vercel API Token",
+                "properties": {
+                    "api_token": {
+                        "type": "string",
+                        "description": "Vercel API token for authentication. Can be scoped to a specific team.",
+                    },
+                },
+                "required": ["api_token"],
             },
         ]
     }

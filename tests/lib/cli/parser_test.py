@@ -17,7 +17,7 @@ prowler_command = "prowler"
 
 # capsys
 # https://docs.pytest.org/en/7.1.x/how-to/capture-stdout-stderr.html
-prowler_default_usage_error = "usage: prowler [-h] [--version] {aws,azure,gcp,kubernetes,m365,github,nhn,mongodbatlas,oci,dashboard,iac} ..."
+prowler_default_usage_error = "usage: prowler [-h] [--version] {aws,azure,gcp,kubernetes,m365,github,googleworkspace,nhn,mongodbatlas,oraclecloud,alibabacloud,cloudflare,openstack,vercel,dashboard,iac,image,llm} ..."
 
 
 def mock_get_available_providers():
@@ -28,10 +28,16 @@ def mock_get_available_providers():
         "kubernetes",
         "m365",
         "github",
+        "googleworkspace",
         "iac",
+        "image",
         "nhn",
         "mongodbatlas",
-        "oci",
+        "oraclecloud",
+        "alibabacloud",
+        "llm",
+        "cloudflare",
+        "openstack",
     ]
 
 
@@ -76,6 +82,7 @@ class Test_Parser:
         assert not parsed.severity
         assert not parsed.compliance
         assert len(parsed.category) == 0
+        assert len(parsed.resource_group) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
         assert not parsed.excluded_checks_file
@@ -84,6 +91,7 @@ class Test_Parser:
         assert not parsed.list_compliance
         assert not parsed.list_compliance_requirements
         assert not parsed.list_categories
+        assert not parsed.list_resource_groups
         assert not parsed.profile
         assert not parsed.role
         assert parsed.session_duration == 3600
@@ -126,6 +134,7 @@ class Test_Parser:
         assert not parsed.severity
         assert not parsed.compliance
         assert len(parsed.category) == 0
+        assert len(parsed.resource_group) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
         assert not parsed.excluded_checks_file
@@ -134,6 +143,7 @@ class Test_Parser:
         assert not parsed.list_compliance
         assert not parsed.list_compliance_requirements
         assert not parsed.list_categories
+        assert not parsed.list_resource_groups
         assert len(parsed.subscription_id) == 0
         assert not parsed.az_cli_auth
         assert parsed.sp_env_auth
@@ -168,6 +178,7 @@ class Test_Parser:
         assert not parsed.severity
         assert not parsed.compliance
         assert len(parsed.category) == 0
+        assert len(parsed.resource_group) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
         assert not parsed.excluded_checks_file
@@ -176,6 +187,7 @@ class Test_Parser:
         assert not parsed.list_compliance
         assert not parsed.list_compliance_requirements
         assert not parsed.list_categories
+        assert not parsed.list_resource_groups
         assert not parsed.credentials_file
 
     def test_default_parser_no_arguments_kubernetes(self):
@@ -205,6 +217,7 @@ class Test_Parser:
         assert not parsed.severity
         assert not parsed.compliance
         assert len(parsed.category) == 0
+        assert len(parsed.resource_group) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
         assert not parsed.excluded_checks_file
@@ -213,6 +226,7 @@ class Test_Parser:
         assert not parsed.list_compliance
         assert not parsed.list_compliance_requirements
         assert not parsed.list_categories
+        assert not parsed.list_resource_groups
         assert parsed.kubeconfig_file == "~/.kube/config"
         assert not parsed.context
         assert not parsed.namespace
@@ -718,6 +732,32 @@ class Test_Parser:
         assert category_1 in parsed.category
         assert category_2 in parsed.category
 
+    def test_checks_parser_resource_group(self):
+        argument = "--resource-group"
+        resource_group = "storage"
+        command = [prowler_command, argument, resource_group]
+        parsed = self.parser.parse(command)
+        assert len(parsed.resource_group) == 1
+        assert resource_group in parsed.resource_group
+
+    def test_checks_parser_resource_groups_alias(self):
+        argument = "--resource-groups"
+        resource_group = "storage"
+        command = [prowler_command, argument, resource_group]
+        parsed = self.parser.parse(command)
+        assert len(parsed.resource_group) == 1
+        assert resource_group in parsed.resource_group
+
+    def test_checks_parser_resource_groups_two(self):
+        argument = "--resource-group"
+        resource_group_1 = "storage"
+        resource_group_2 = "compute"
+        command = [prowler_command, argument, resource_group_1, resource_group_2]
+        parsed = self.parser.parse(command)
+        assert len(parsed.resource_group) == 2
+        assert resource_group_1 in parsed.resource_group
+        assert resource_group_2 in parsed.resource_group
+
     def test_list_checks_parser_list_checks_short(self):
         argument = "-l"
         command = [prowler_command, argument]
@@ -753,6 +793,12 @@ class Test_Parser:
         command = [prowler_command, argument]
         parsed = self.parser.parse(command)
         assert parsed.list_categories
+
+    def test_list_checks_parser_list_resource_groups(self):
+        argument = "--list-resource-groups"
+        command = [prowler_command, argument]
+        parsed = self.parser.parse(command)
+        assert parsed.list_resource_groups
 
     def test_list_checks_parser_list_fixers(self):
         argument = "--list-fixers"
@@ -1233,6 +1279,23 @@ class Test_Parser:
         assert (
             capsys.readouterr().err
             == f"{prowler_default_usage_error}\nprowler: error: unrecognized arguments: --subscription-ids\n"
+        )
+
+    def test_parser_non_aws_with_json_asff_output(self, capsys):
+        command = [
+            prowler_command,
+            "azure",
+            "--sp-env-auth",
+            "--output-formats",
+            "json-asff",
+        ]
+        with pytest.raises(SystemExit) as wrapped_exit:
+            _ = self.parser.parse(command)
+        assert wrapped_exit.type == SystemExit
+        assert wrapped_exit.value.code == 2
+        assert (
+            capsys.readouterr().err
+            == f"{prowler_default_usage_error}\nprowler: error: json-asff output format is only available for the aws provider, but azure was selected\n"
         )
 
     def test_parser_gcp_auth_credentials_file(self):

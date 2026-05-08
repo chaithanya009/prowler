@@ -3,7 +3,9 @@ from uuid import uuid4
 
 from prowler.providers.azure.services.postgresql.postgresql_service import Server
 from tests.providers.azure.azure_fixtures import (
+    AZURE_SUBSCRIPTION_DISPLAY,
     AZURE_SUBSCRIPTION_ID,
+    AZURE_SUBSCRIPTION_NAME,
     set_mocked_azure_provider,
 )
 
@@ -11,6 +13,9 @@ from tests.providers.azure.azure_fixtures import (
 class Test_postgresql_flexible_server_enforce_ssl_enabled:
     def test_no_postgresql_flexible_servers(self):
         postgresql_client = mock.MagicMock
+        postgresql_client.subscriptions = {
+            AZURE_SUBSCRIPTION_ID: AZURE_SUBSCRIPTION_NAME
+        }
         postgresql_client.flexible_servers = {}
 
         with (
@@ -33,6 +38,9 @@ class Test_postgresql_flexible_server_enforce_ssl_enabled:
 
     def test_flexible_servers_require_secure_transport_off(self):
         postgresql_client = mock.MagicMock
+        postgresql_client.subscriptions = {
+            AZURE_SUBSCRIPTION_ID: AZURE_SUBSCRIPTION_NAME
+        }
         postgresql_server_name = "Postgres Flexible Server Name"
         postgresql_server_id = str(uuid4())
         postgresql_client.flexible_servers = {
@@ -41,14 +49,16 @@ class Test_postgresql_flexible_server_enforce_ssl_enabled:
                     id=postgresql_server_id,
                     name=postgresql_server_name,
                     resource_group="resource_group",
+                    location="location",
                     require_secure_transport="OFF",
+                    active_directory_auth=None,
+                    entra_id_admins=[],
                     log_checkpoints="ON",
                     log_connections="ON",
                     log_disconnections="ON",
                     connection_throttling="ON",
                     log_retention_days="3",
                     firewall=None,
-                    location="location",
                 )
             ]
         }
@@ -73,7 +83,7 @@ class Test_postgresql_flexible_server_enforce_ssl_enabled:
             assert result[0].status == "FAIL"
             assert (
                 result[0].status_extended
-                == f"Flexible Postgresql server {postgresql_server_name} from subscription {AZURE_SUBSCRIPTION_ID} has enforce ssl disabled"
+                == f"Flexible Postgresql server {postgresql_server_name} from subscription {AZURE_SUBSCRIPTION_DISPLAY} has enforce ssl disabled"
             )
             assert result[0].subscription == AZURE_SUBSCRIPTION_ID
             assert result[0].resource_name == postgresql_server_name
@@ -82,6 +92,9 @@ class Test_postgresql_flexible_server_enforce_ssl_enabled:
 
     def test_flexible_servers_require_secure_transport_on(self):
         postgresql_client = mock.MagicMock
+        postgresql_client.subscriptions = {
+            AZURE_SUBSCRIPTION_ID: AZURE_SUBSCRIPTION_NAME
+        }
         postgresql_server_name = "Postgres Flexible Server Name"
         postgresql_server_id = str(uuid4())
         postgresql_client.flexible_servers = {
@@ -90,14 +103,16 @@ class Test_postgresql_flexible_server_enforce_ssl_enabled:
                     id=postgresql_server_id,
                     name=postgresql_server_name,
                     resource_group="resource_group",
+                    location="location",
                     require_secure_transport="ON",
+                    active_directory_auth=None,
+                    entra_id_admins=[],
                     log_checkpoints="ON",
                     log_connections="ON",
                     log_disconnections="ON",
                     connection_throttling="ON",
                     log_retention_days="3",
                     firewall=None,
-                    location="location",
                 )
             ]
         }
@@ -122,7 +137,7 @@ class Test_postgresql_flexible_server_enforce_ssl_enabled:
             assert result[0].status == "PASS"
             assert (
                 result[0].status_extended
-                == f"Flexible Postgresql server {postgresql_server_name} from subscription {AZURE_SUBSCRIPTION_ID} has enforce ssl enabled"
+                == f"Flexible Postgresql server {postgresql_server_name} from subscription {AZURE_SUBSCRIPTION_DISPLAY} has enforce ssl enabled"
             )
             assert result[0].subscription == AZURE_SUBSCRIPTION_ID
             assert result[0].resource_name == postgresql_server_name

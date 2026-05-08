@@ -1,9 +1,12 @@
 import re
+from datetime import datetime, timezone
 from ipaddress import ip_address, ip_network
 from typing import Optional, Tuple
 
+from dateutil.parser import parse
 from py_iam_expand.actions import InvalidActionHandling, expand_actions
 
+from prowler.lib.check.models import Check_Report_AWS
 from prowler.lib.logger import logger
 from prowler.providers.aws.aws_provider import read_aws_regions_file
 
@@ -380,6 +383,56 @@ def is_condition_restricting_from_private_ip(condition_statement: dict) -> bool:
     return is_from_private_ip
 
 
+def is_condition_restricting_to_trusted_ips(
+    condition_statement: dict, trusted_ips: list = None
+) -> bool:
+    """Check if the policy condition restricts access to trusted IP addresses.
+
+    Keyword arguments:
+    condition_statement -- The policy condition to check. For example:
+        {
+            "IpAddress": {
+                "aws:SourceIp": "X.X.X.X"
+            }
+        }
+    trusted_ips -- A list of trusted IP addresses or CIDR ranges.
+    """
+    if not trusted_ips:
+        return False
+
+    try:
+        CONDITION_OPERATOR = "IpAddress"
+        CONDITION_KEY = "aws:sourceip"
+
+        if condition_statement.get(CONDITION_OPERATOR, {}):
+            condition_statement[CONDITION_OPERATOR] = {
+                k.lower(): v for k, v in condition_statement[CONDITION_OPERATOR].items()
+            }
+
+            if condition_statement[CONDITION_OPERATOR].get(CONDITION_KEY, ""):
+                if not isinstance(
+                    condition_statement[CONDITION_OPERATOR][CONDITION_KEY], list
+                ):
+                    condition_statement[CONDITION_OPERATOR][CONDITION_KEY] = [
+                        condition_statement[CONDITION_OPERATOR][CONDITION_KEY]
+                    ]
+
+                trusted_ips_set = {ip.lower() for ip in trusted_ips}
+                for ip in condition_statement[CONDITION_OPERATOR][CONDITION_KEY]:
+                    if ip == "*" or ip == "0.0.0.0/0":
+                        return False
+                    if ip not in trusted_ips_set:
+                        return False
+                return True
+
+    except Exception as error:
+        logger.error(
+            f"{error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
+        )
+
+    return False
+
+
 # TODO: Add logic for deny statements
 def is_policy_public(
     policy: dict,
@@ -387,6 +440,8 @@ def is_policy_public(
     is_cross_account_allowed=True,
     not_allowed_actions: list = [],
     check_cross_service_confused_deputy=False,
+    trusted_account_ids: list = None,
+    trusted_ips: list = None,
 ) -> bool:
     """
     Check if the policy allows public access to the resource.
@@ -397,10 +452,20 @@ def is_policy_public(
         is_cross_account_allowed (bool): If the policy can allow cross-account access, default: True (https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html#cross-service-confused-deputy-prevention)
         not_allowed_actions (list): List of actions that are not allowed, default: []. If not_allowed_actions is empty, the function will not consider the actions in the policy.
         check_cross_service_confused_deputy (bool): If the policy is checked for cross-service confused deputy, default: False
+        trusted_account_ids (list): A list of trusted accound ids to reduce false positives on cross-account checks
+        trusted_ips (list): A list of trusted IP addresses or CIDR ranges to reduce false positives on IP-based checks
     Returns:
         bool: True if the policy allows public access, False otherwise
     """
     is_public = False
+
+    if trusted_account_ids is None:
+        trusted_account_ids = []
+
+    trusted_accounts = set(trusted_account_ids)
+    if source_account:
+        trusted_accounts.add(source_account)
+
     if policy:
         for statement in policy.get("Statement", []):
             # Only check allow statements
@@ -414,38 +479,52 @@ def is_policy_public(
                         isinstance(principal.get("AWS"), str)
                         and source_account
                         and not is_cross_account_allowed
-                        and source_account not in principal.get("AWS", "")
+                        and not any(
+                            trusted_account in principal.get("AWS", "")
+                            for trusted_account in trusted_accounts
+                        )
                     ) or (
                         isinstance(principal.get("AWS"), list)
                         and source_account
                         and not is_cross_account_allowed
-                        and not any(
-                            source_account in principal_aws
+                        and not all(
+                            any(
+                                trusted_account in principal_aws
+                                for trusted_account in trusted_accounts
+                            )
                             for principal_aws in principal["AWS"]
                         )
                     ):
                         has_public_access = True
 
                     # Check for cross-service confused deputy
-                    if check_cross_service_confused_deputy and (
+                    if check_cross_service_confused_deputy:
                         # Check if function can be invoked by other AWS services if check_cross_service_confused_deputy is True
-                        (
-                            ".amazonaws.com" in principal.get("Service", "")
-                            or ".amazon.com" in principal.get("Service", "")
-                            or "*" in principal.get("Service", "")
+
+                        svc = principal.get("Service", [])
+                        if isinstance(svc, str):
+                            services = [svc]
+                        elif isinstance(svc, list):
+                            services = [s for s in svc if isinstance(s, str)]
+                        else:
+                            services = []
+
+                        is_cross_service = any(
+                            s == "*"
+                            or s.endswith(".amazonaws.com")
+                            or s.endswith(".amazon.com")
+                            for s in services
                         )
-                        and (
-                            "secretsmanager.amazonaws.com"
-                            not in principal.get(
-                                "Service", ""
-                            )  # AWS ensures that resources called by SecretsManager are executed in the same AWS account
-                            or "eks.amazonaws.com"
-                            not in principal.get(
-                                "Service", ""
-                            )  # AWS ensures that resources called by EKS are executed in the same AWS account
+
+                        # AWS ensures that resources called by SecretsManager are executed in the same AWS account
+                        # AWS ensures that resources called by EKS are executed in the same AWS account
+                        is_exempt = any(
+                            s in {"secretsmanager.amazonaws.com", "eks.amazonaws.com"}
+                            for s in services
                         )
-                    ):
-                        has_public_access = True
+
+                        if is_cross_service and not is_exempt:
+                            has_public_access = True
 
                 if has_public_access and (
                     not not_allowed_actions  # If not_allowed_actions is empty, the function will not consider the actions in the policy
@@ -486,6 +565,10 @@ def is_policy_public(
                         )
                         and not is_condition_restricting_from_private_ip(
                             statement.get("Condition", {})
+                        )
+                        and not is_condition_restricting_to_trusted_ips(
+                            statement.get("Condition", {}),
+                            trusted_ips,
                         )
                     )
                     if is_public:
@@ -537,6 +620,11 @@ def is_condition_block_restrictive(
             "aws:sourceorgpaths",
             "aws:userid",
             "aws:username",
+            "aws:calledvia",
+            "aws:calledviafirst",
+            "aws:calledvialast",
+            "kms:calleraccount",
+            "kms:viaservice",
             "s3:resourceaccount",
             "lambda:eventsourcetoken",  # For Alexa Home functions, a token that the invoker must supply.
         ],
@@ -555,6 +643,11 @@ def is_condition_block_restrictive(
             "aws:sourceorgpaths",
             "aws:userid",
             "aws:username",
+            "aws:calledvia",
+            "aws:calledviafirst",
+            "aws:calledvialast",
+            "kms:calleraccount",
+            "kms:viaservice",
             "s3:resourceaccount",
             "lambda:eventsourcetoken",
         ],
@@ -904,6 +997,93 @@ def is_codebuild_using_allowed_github_org(
         return False, None
 
 
+def policy_allows_marketplace_subscribe_on_all_resources(
+    policy_document: dict,
+) -> bool:
+    """Check if a policy document can allow aws-marketplace:Subscribe on Resource:*.
+
+    Inspects statements with Resource ``*`` for Allow effects that grant
+    ``aws-marketplace:Subscribe`` via ``Action`` or ``NotAction`` (wildcard
+    patterns expanded through ``expand_actions``). Unconditional Deny
+    statements on Resource ``*`` (via either ``Action`` or ``NotAction``)
+    covering the same action take precedence. Conditional Deny statements
+    are not treated as global cancellation because the condition scope is
+    request-dependent and is not evaluated here. Conditional Allow
+    statements are still treated as potentially allowing access on
+    ``Resource:*``, since the wildcard scope remains risky even when
+    gated by a condition.
+
+    Args:
+        policy_document: The IAM policy document to analyse.
+
+    Returns:
+        True if the policy can allow aws-marketplace:Subscribe on all
+        resources, False otherwise.
+    """
+    if not policy_document or "Statement" not in policy_document:
+        return False
+
+    target_actions = set(
+        expand_actions(
+            "aws-marketplace:Subscribe",
+            InvalidActionHandling.REMOVE,
+        )
+    )
+    if not target_actions:
+        target_actions = {"aws-marketplace:Subscribe"}
+
+    statements = policy_document.get("Statement", [])
+    if not isinstance(statements, list):
+        statements = [statements]
+
+    allowed_on_all = set()
+    denied_on_all = set()
+    all_aws_actions = None
+
+    for statement in statements:
+        effect = statement.get("Effect", "")
+        if not isinstance(effect, str):
+            continue
+        effect_lower = effect.strip().lower()
+        if effect_lower not in ("allow", "deny"):
+            continue
+
+        resources = statement.get("Resource", [])
+        if isinstance(resources, str):
+            resources = [resources]
+        if "*" not in resources:
+            continue
+
+        if effect_lower == "deny" and "Condition" in statement:
+            continue
+
+        statement_actions = set()
+        action_patterns = _get_patterns_from_standard_value(statement.get("Action"))
+        for pattern in action_patterns:
+            statement_actions.update(
+                expand_actions(pattern, InvalidActionHandling.REMOVE)
+            )
+
+        not_action_patterns = _get_patterns_from_standard_value(
+            statement.get("NotAction")
+        )
+        if not_action_patterns:
+            if all_aws_actions is None:
+                all_aws_actions = set(expand_actions("*", InvalidActionHandling.REMOVE))
+            exclusions = set()
+            for pattern in not_action_patterns:
+                exclusions.update(expand_actions(pattern, InvalidActionHandling.REMOVE))
+            statement_actions.update(all_aws_actions.difference(exclusions))
+
+        if effect_lower == "allow":
+            allowed_on_all.update(statement_actions)
+        else:
+            denied_on_all.update(statement_actions)
+
+    effective = allowed_on_all.difference(denied_on_all)
+    return bool(target_actions & effective)
+
+
 def has_codebuild_trusted_principal(trust_policy: dict) -> bool:
     """
     Returns True if the trust policy allows codebuild.amazonaws.com as a trusted principal, otherwise False.
@@ -941,3 +1121,47 @@ def has_codebuild_trusted_principal(trust_policy: dict) -> bool:
         )
         for s in statements
     )
+
+
+def find_bedrock_service(last_accessed_services: list[dict]) -> Optional[dict]:
+    """Return the Bedrock entry from a service last accessed list."""
+    for service in last_accessed_services:
+        if service.get("ServiceNamespace") == "bedrock":
+            return service
+    return None
+
+
+def evaluate_bedrock_staleness(
+    report: Check_Report_AWS,
+    bedrock_service: dict,
+    max_days: int,
+    identity_name: str,
+    identity_type: str,
+) -> None:
+    """Populate a check report based on Bedrock access recency."""
+    last_authenticated = bedrock_service.get("LastAuthenticated")
+    if last_authenticated is None:
+        report.status = "FAIL"
+        report.status_extended = (
+            f"IAM {identity_type} {identity_name} has Bedrock permissions "
+            f"but has never used them."
+        )
+        return
+
+    if isinstance(last_authenticated, str):
+        last_authenticated = parse(last_authenticated)
+
+    days_since_access = (datetime.now(timezone.utc) - last_authenticated).days
+
+    if days_since_access > max_days:
+        report.status = "FAIL"
+        report.status_extended = (
+            f"IAM {identity_type} {identity_name} has not accessed Bedrock "
+            f"in {days_since_access} days (threshold: {max_days} days)."
+        )
+    else:
+        report.status = "PASS"
+        report.status_extended = (
+            f"IAM {identity_type} {identity_name} accessed Bedrock "
+            f"{days_since_access} days ago (threshold: {max_days} days)."
+        )

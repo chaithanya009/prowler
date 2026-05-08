@@ -17,6 +17,10 @@ SAMPLE_TRIVY_OUTPUT = {
                     "Severity": "LOW",
                     "PrimaryURL": "https://avd.aquasec.com/misconfig/aws/s3/avd-aws-0001",
                     "RuleID": "AVD-AWS-0001",
+                    "CauseMetadata": {
+                        "StartLine": 10,
+                        "EndLine": 15,
+                    },
                 },
                 {
                     "ID": "AVD-AWS-0002",
@@ -27,6 +31,10 @@ SAMPLE_TRIVY_OUTPUT = {
                     "Severity": "LOW",
                     "PrimaryURL": "https://avd.aquasec.com/misconfig/aws/s3/avd-aws-0002",
                     "RuleID": "AVD-AWS-0002",
+                    "CauseMetadata": {
+                        "StartLine": 20,
+                        "EndLine": 25,
+                    },
                 },
             ],
             "Vulnerabilities": [],
@@ -46,6 +54,10 @@ SAMPLE_TRIVY_OUTPUT = {
                     "Severity": "LOW",
                     "PrimaryURL": "https://avd.aquasec.com/misconfig/aws/s3/avd-aws-0003",
                     "RuleID": "AVD-AWS-0003",
+                    "CauseMetadata": {
+                        "StartLine": 30,
+                        "EndLine": 35,
+                    },
                 }
             ],
             "Vulnerabilities": [],
@@ -67,6 +79,10 @@ SAMPLE_FAILED_CHECK = {
     "Severity": "low",
     "PrimaryURL": "https://avd.aquasec.com/misconfig/aws/s3/avd-aws-0001",
     "RuleID": "AVD-AWS-0001",
+    "CauseMetadata": {
+        "StartLine": 10,
+        "EndLine": 15,
+    },
 }
 
 SAMPLE_PASSED_CHECK = {
@@ -78,6 +94,10 @@ SAMPLE_PASSED_CHECK = {
     "Severity": "low",
     "PrimaryURL": "https://avd.aquasec.com/misconfig/aws/s3/avd-aws-0003",
     "RuleID": "AVD-AWS-0003",
+    "CauseMetadata": {
+        "StartLine": 30,
+        "EndLine": 35,
+    },
 }
 
 # Additional sample checks
@@ -239,13 +259,52 @@ SAMPLE_TRIVY_VULNERABILITY_OUTPUT = {
                     "Title": "Example vulnerability",
                     "Description": "This is an example vulnerability",
                     "Severity": "high",
-                    "PrimaryURL": "https://example.com/cve-2023-1234",
+                    "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2023-1234",
+                    "References": [
+                        "https://avd.aquasec.com/nvd/cve-2023-1234",
+                        "https://nvd.nist.gov/vuln/detail/CVE-2023-1234",
+                        "https://www.cve.org/CVERecord?id=CVE-2023-1234",
+                        "https://security.example.com/advisories/CVE-2023-1234",
+                    ],
                 }
             ],
             "Secrets": [],
             "Licenses": [],
         }
     ]
+}
+
+SAMPLE_TRIVY_VULNERABILITY_WITHOUT_CVE_ORG_REFERENCE = {
+    "VulnerabilityID": "CVE-2023-5678",
+    "Title": "Vulnerability without cve.org reference",
+    "Description": "This vulnerability includes references but no cve.org reference",
+    "Severity": "high",
+    "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2023-5678",
+    "References": [
+        "https://avd.aquasec.com/nvd/cve-2023-5678",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-5678",
+        "https://security.example.com/advisories/CVE-2023-5678",
+    ],
+}
+
+SAMPLE_TRIVY_VULNERABILITY_WITHOUT_REFERENCES = {
+    "VulnerabilityID": "CVE-2023-9012",
+    "Title": "Fallback CVE vulnerability",
+    "Description": "This vulnerability requires building the URL from VulnerabilityID",
+    "Severity": "medium",
+    "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2023-9012",
+}
+
+SAMPLE_TRIVY_NON_CVE_VULNERABILITY = {
+    "VulnerabilityID": "GHSA-abcd-1234-efgh",
+    "Title": "Non-CVE vulnerability",
+    "Description": "This advisory has no CVE identifier",
+    "Severity": "high",
+    "PrimaryURL": "https://avd.aquasec.com/nvd/ghsa-abcd-1234-efgh",
+    "References": [
+        "https://avd.aquasec.com/nvd/ghsa-abcd-1234-efgh",
+        "https://github.com/advisories/GHSA-abcd-1234-efgh",
+    ],
 }
 
 # Sample Trivy output with secrets

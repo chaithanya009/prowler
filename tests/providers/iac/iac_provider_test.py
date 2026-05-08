@@ -20,6 +20,9 @@ from tests.providers.iac.iac_fixtures import (
     SAMPLE_KUBERNETES_CHECK,
     SAMPLE_PASSED_CHECK,
     SAMPLE_SKIPPED_CHECK,
+    SAMPLE_TRIVY_NON_CVE_VULNERABILITY,
+    SAMPLE_TRIVY_VULNERABILITY_WITHOUT_CVE_ORG_REFERENCE,
+    SAMPLE_TRIVY_VULNERABILITY_WITHOUT_REFERENCES,
     SAMPLE_YAML_CHECK,
     get_empty_trivy_output,
     get_invalid_trivy_output,
@@ -57,11 +60,15 @@ class TestIacProvider:
         assert isinstance(report, CheckReportIAC)
         assert report.status == "FAIL"
 
+        # Trivy emits "AVD-AWS-0001"; Hub indexes it without the AVD- prefix.
+        expected_url = "https://hub.prowler.com/check/AWS-0001"
         assert report.check_metadata.Provider == "iac"
         assert report.check_metadata.CheckID == SAMPLE_FAILED_CHECK["ID"]
         assert report.check_metadata.CheckTitle == SAMPLE_FAILED_CHECK["Title"]
         assert report.check_metadata.Severity == "low"
-        assert report.check_metadata.RelatedUrl == SAMPLE_FAILED_CHECK["PrimaryURL"]
+        assert report.check_metadata.Remediation.Recommendation.Url == expected_url
+        assert report.check_metadata.RelatedUrl == ""
+        assert report.check_metadata.AdditionalURLs == [expected_url]
 
     def test_iac_provider_process_finding_passed(self):
         """Test processing a passed finding"""
@@ -77,6 +84,101 @@ class TestIacProvider:
         assert report.check_metadata.CheckTitle == SAMPLE_PASSED_CHECK["Title"]
         assert report.check_metadata.Severity == "low"
 
+    def test_iac_provider_process_vulnerability_prefers_cve_reference_and_filters_aqua(
+        self,
+    ):
+        """Test CVE findings use cve.org and exclude Aqua references."""
+        provider = IacProvider()
+
+        report = provider._process_finding(
+            {
+                "VulnerabilityID": "CVE-2023-1234",
+                "Title": "Example vulnerability",
+                "Description": "This is an example vulnerability",
+                "Severity": "high",
+                "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2023-1234",
+                "References": [
+                    "https://avd.aquasec.com/nvd/cve-2023-1234",
+                    "https://nvd.nist.gov/vuln/detail/CVE-2023-1234",
+                    "https://www.cve.org/CVERecord?id=CVE-2023-1234",
+                    "https://security.example.com/advisories/CVE-2023-1234",
+                ],
+            },
+            "package.json",
+            "nodejs",
+        )
+
+        assert (
+            report.check_metadata.Remediation.Recommendation.Url
+            == "https://www.cve.org/CVERecord?id=CVE-2023-1234"
+        )
+        assert report.check_metadata.RelatedUrl == ""
+        assert report.check_metadata.AdditionalURLs == [
+            "https://www.cve.org/CVERecord?id=CVE-2023-1234"
+        ]
+
+    def test_iac_provider_process_vulnerability_builds_cve_org_for_nvd_reference(
+        self,
+    ):
+        """Test official CVE URL is built when only NVD is provided."""
+        provider = IacProvider()
+
+        report = provider._process_finding(
+            SAMPLE_TRIVY_VULNERABILITY_WITHOUT_CVE_ORG_REFERENCE,
+            "package.json",
+            "nodejs",
+        )
+
+        assert (
+            report.check_metadata.Remediation.Recommendation.Url
+            == "https://www.cve.org/CVERecord?id=CVE-2023-5678"
+        )
+        assert report.check_metadata.RelatedUrl == ""
+        assert report.check_metadata.AdditionalURLs == [
+            "https://www.cve.org/CVERecord?id=CVE-2023-5678"
+        ]
+
+    def test_iac_provider_process_vulnerability_builds_cve_org_when_references_missing(
+        self,
+    ):
+        """Test CVE URL is built from VulnerabilityID when references are absent."""
+        provider = IacProvider()
+
+        report = provider._process_finding(
+            SAMPLE_TRIVY_VULNERABILITY_WITHOUT_REFERENCES,
+            "package.json",
+            "nodejs",
+        )
+
+        assert (
+            report.check_metadata.Remediation.Recommendation.Url
+            == "https://www.cve.org/CVERecord?id=CVE-2023-9012"
+        )
+        assert report.check_metadata.RelatedUrl == ""
+        assert report.check_metadata.AdditionalURLs == [
+            "https://www.cve.org/CVERecord?id=CVE-2023-9012"
+        ]
+
+    def test_iac_provider_process_non_cve_vulnerability_falls_back_to_github_advisory(
+        self,
+    ):
+        """Non-CVE vulnerabilities (GHSA-…) point to GitHub Security Advisories."""
+        provider = IacProvider()
+
+        report = provider._process_finding(
+            SAMPLE_TRIVY_NON_CVE_VULNERABILITY,
+            "package.json",
+            "nodejs",
+        )
+
+        expected_url = (
+            "https://github.com/advisories/"
+            f"{SAMPLE_TRIVY_NON_CVE_VULNERABILITY['VulnerabilityID'].upper()}"
+        )
+        assert report.check_metadata.Remediation.Recommendation.Url == expected_url
+        assert report.check_metadata.RelatedUrl == ""
+        assert report.check_metadata.AdditionalURLs == [expected_url]
+
     @patch("subprocess.run")
     def test_iac_provider_run_scan_success(self, mock_subprocess):
         """Test successful IAC scan with Trivy"""
@@ -86,9 +188,12 @@ class TestIacProvider:
             stdout=get_sample_trivy_json_output(), stderr=""
         )
 
-        reports = provider.run_scan(
+        # Collect all batches from the generator
+        reports = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            reports.extend(batch)
 
         # Should have 3 misconfigurations from the sample output
         assert len(reports) == 3
@@ -124,9 +229,11 @@ class TestIacProvider:
             stdout=get_empty_trivy_output(), stderr=""
         )
 
-        reports = provider.run_scan(
+        reports = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            reports.extend(batch)
         assert len(reports) == 0
 
     def test_provider_run_local_scan(self):
@@ -143,19 +250,31 @@ class TestIacProvider:
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_provider_run_remote_scan(self):
         scan_repository_url = "https://github.com/user/repo"
-        provider = IacProvider(scan_repository_url=scan_repository_url)
         with tempfile.TemporaryDirectory() as temp_dir:
             with (
                 mock.patch(
                     "prowler.providers.iac.iac_provider.IacProvider._clone_repository",
-                    return_value=temp_dir,
+                    return_value=(temp_dir, "main"),
                 ) as mock_clone,
                 mock.patch(
                     "prowler.providers.iac.iac_provider.IacProvider.run_scan"
                 ) as mock_run_scan,
             ):
+                # Repository cloning now happens during __init__
+                provider = IacProvider(scan_repository_url=scan_repository_url)
+
+                # Verify clone was called during initialization
+                mock_clone.assert_called_once_with(
+                    scan_repository_url, None, None, None
+                )
+
+                # Verify region was updated with branch name
+                assert provider.region == "main"
+
+                # Run the scan
                 provider.run()
-                mock_clone.assert_called_with(scan_repository_url, None, None, None)
+
+                # Verify scan was called with the cloned directory
                 mock_run_scan.assert_called_with(
                     temp_dir, ["vuln", "misconfig", "secret"], []
                 )
@@ -178,17 +297,22 @@ class TestIacProvider:
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_print_credentials_remote(self):
         repo_url = "https://github.com/user/repo"
-        provider = IacProvider(scan_repository_url=repo_url)
-        with mock.patch("builtins.print") as mock_print:
-            provider.print_credentials()
-            assert any(
-                f"Repository: \x1b[33m{repo_url}\x1b[0m" in call.args[0]
-                for call in mock_print.call_args_list
-            )
-            assert any(
-                "Scanning remote IaC repository:" in call.args[0]
-                for call in mock_print.call_args_list
-            )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with mock.patch(
+                "prowler.providers.iac.iac_provider.IacProvider._clone_repository",
+                return_value=(temp_dir, "main"),
+            ):
+                provider = IacProvider(scan_repository_url=repo_url)
+                with mock.patch("builtins.print") as mock_print:
+                    provider.print_credentials()
+                    assert any(
+                        f"Repository: \x1b[33m{repo_url}\x1b[0m" in call.args[0]
+                        for call in mock_print.call_args_list
+                    )
+                    assert any(
+                        "Scanning remote IaC repository:" in call.args[0]
+                        for call in mock_print.call_args_list
+                    )
 
     @patch("subprocess.run")
     def test_iac_provider_process_check_medium_severity(self, mock_subprocess):
@@ -200,7 +324,9 @@ class TestIacProvider:
         )
 
         with pytest.raises(SystemExit) as excinfo:
-            provider.run_scan("/test/directory", ["all"], [])
+            # Consume the generator
+            for _ in provider.run_scan("/test/directory", ["all"], []):
+                pass
 
         assert excinfo.value.code == 1
 
@@ -212,7 +338,11 @@ class TestIacProvider:
         mock_subprocess.return_value = MagicMock(stdout="null", stderr="")
 
         with pytest.raises(SystemExit) as exc_info:
-            provider.run_scan("/test/directory", ["vuln", "misconfig", "secret"], [])
+            # Consume the generator
+            for _ in provider.run_scan(
+                "/test/directory", ["vuln", "misconfig", "secret"], []
+            ):
+                pass
         assert exc_info.value.code == 1
 
     def test_iac_provider_process_finding_dockerfile(self):
@@ -264,9 +394,11 @@ class TestIacProvider:
             stdout=json.dumps(sample_output), stderr=""
         )
 
-        result = provider.run_scan(
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert len(result) == 2
@@ -299,9 +431,11 @@ class TestIacProvider:
             stdout=json.dumps(sample_output), stderr=""
         )
 
-        result = provider.run_scan(
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], ["exclude/path"]
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert len(result) == 1
@@ -318,9 +452,11 @@ class TestIacProvider:
             stdout=json.dumps({"Results": []}), stderr=""
         )
 
-        result = provider.run_scan(
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert len(result) == 0
@@ -356,9 +492,11 @@ class TestIacProvider:
             stdout=json.dumps(sample_output), stderr=""
         )
 
-        result = provider.run_scan(
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert len(result) == 2
@@ -377,7 +515,11 @@ class TestIacProvider:
         mock_subprocess.side_effect = Exception("Test exception")
 
         with pytest.raises(SystemExit) as exc_info:
-            provider.run_scan("/test/directory", ["vuln", "misconfig", "secret"], [])
+            # Consume the generator
+            for _ in provider.run_scan(
+                "/test/directory", ["vuln", "misconfig", "secret"], []
+            ):
+                pass
 
         assert exc_info.value.code == 1
 
@@ -405,7 +547,9 @@ class TestIacProvider:
 
         # Test with specific scanners
         scanners = ["vuln", "misconfig", "secret"]
-        result = provider.run_scan("/test/directory", scanners, [])
+        result = []
+        for batch in provider.run_scan("/test/directory", scanners, []):
+            result.extend(batch)
 
         # Verify subprocess was called with correct scanners
         mock_subprocess.assert_called_once_with(
@@ -453,9 +597,11 @@ class TestIacProvider:
 
         # Test with exclude paths
         exclude_paths = ["node_modules", ".git", "vendor"]
-        result = provider.run_scan(
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], exclude_paths
-        )
+        ):
+            result.extend(batch)
 
         # Verify subprocess was called with correct exclude paths
         expected_command = [
@@ -510,9 +656,12 @@ class TestIacProvider:
             stdout=json.dumps(sample_output), stderr=""
         )
 
-        result = provider.run_scan(
+        # Consume the generator to get all batches
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert len(result) == 5  # 5 misconfigurations
@@ -536,9 +685,12 @@ class TestIacProvider:
             stdout=json.dumps({"Results": []}), stderr=""
         )
 
-        result = provider.run_scan(
+        # Consume the generator to get all batches
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert len(result) == 0
@@ -592,9 +744,12 @@ class TestIacProvider:
             stdout=json.dumps(sample_output), stderr=""
         )
 
-        result = provider.run_scan(
+        # Consume the generator to get all batches
+        result = []
+        for batch in provider.run_scan(
             "/test/directory", ["vuln", "misconfig", "secret"], []
-        )
+        ):
+            result.extend(batch)
 
         # Verify results
         assert (
@@ -615,7 +770,8 @@ class TestIacProvider:
         )
 
         with patch.object(provider, "run_scan") as mock_run_scan:
-            mock_run_scan.return_value = []
+            # Mock should return a generator (empty in this case)
+            mock_run_scan.return_value = iter([])
             provider.run()
 
             mock_run_scan.assert_called_once_with(
@@ -627,25 +783,79 @@ class TestIacProvider:
     def test_clone_repository_no_auth(self, _mock_mkdtemp, mock_clone):
         provider = IacProvider()
         url = "https://github.com/user/repo.git"
-        provider._clone_repository(url)
+        with mock.patch.object(provider, "_detect_branch_name", return_value="main"):
+            temp_dir, branch_name = provider._clone_repository(url)
         mock_clone.assert_called_with(url, "/tmp/fake-dir", depth=1)
+        assert temp_dir == "/tmp/fake-dir"
+        assert branch_name == "main"
 
     @mock.patch("prowler.providers.iac.iac_provider.porcelain.clone")
     @mock.patch("tempfile.mkdtemp", return_value="/tmp/fake-dir")
     def test_clone_repository_with_pat(self, _mock_mkdtemp, mock_clone):
         provider = IacProvider()
         url = "https://github.com/user/repo.git"
-        provider._clone_repository(
-            url, github_username="user", personal_access_token="token123"
-        )
+        with mock.patch.object(provider, "_detect_branch_name", return_value="develop"):
+            temp_dir, branch_name = provider._clone_repository(
+                url, github_username="user", personal_access_token="token123"
+            )
         expected_url = "https://user:token123@github.com/user/repo.git"
         mock_clone.assert_called_with(expected_url, "/tmp/fake-dir", depth=1)
+        assert temp_dir == "/tmp/fake-dir"
+        assert branch_name == "develop"
 
     @mock.patch("prowler.providers.iac.iac_provider.porcelain.clone")
     @mock.patch("tempfile.mkdtemp", return_value="/tmp/fake-dir")
     def test_clone_repository_with_oauth(self, _mock_mkdtemp, mock_clone):
         provider = IacProvider()
         url = "https://github.com/user/repo.git"
-        provider._clone_repository(url, oauth_app_token="oauth456")
+        with mock.patch.object(provider, "_detect_branch_name", return_value="master"):
+            temp_dir, branch_name = provider._clone_repository(
+                url, oauth_app_token="oauth456"
+            )
         expected_url = "https://oauth2:oauth456@github.com/user/repo.git"
         mock_clone.assert_called_with(expected_url, "/tmp/fake-dir", depth=1)
+        assert temp_dir == "/tmp/fake-dir"
+        assert branch_name == "master"
+
+    def test_detect_branch_name_main(self):
+        """Test detecting 'main' branch from .git/HEAD"""
+        provider = IacProvider()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create a mock .git/HEAD file with main branch
+            git_dir = os.path.join(temp_dir, ".git")
+            os.makedirs(git_dir)
+            head_file = os.path.join(git_dir, "HEAD")
+            with open(head_file, "w") as f:
+                f.write("ref: refs/heads/main\n")
+
+            branch_name = provider._detect_branch_name(temp_dir)
+            assert branch_name == "main"
+
+    def test_detect_branch_name_custom_branch(self):
+        """Test detecting custom branch like 'develop' from .git/HEAD"""
+        provider = IacProvider()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create a mock .git/HEAD file with develop branch
+            git_dir = os.path.join(temp_dir, ".git")
+            os.makedirs(git_dir)
+            head_file = os.path.join(git_dir, "HEAD")
+            with open(head_file, "w") as f:
+                f.write("ref: refs/heads/develop\n")
+
+            branch_name = provider._detect_branch_name(temp_dir)
+            assert branch_name == "develop"
+
+    def test_detect_branch_name_fallback(self):
+        """Test fallback to 'main' when .git/HEAD doesn't exist"""
+        provider = IacProvider()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Don't create .git/HEAD file
+            branch_name = provider._detect_branch_name(temp_dir)
+            assert branch_name == "main"
+
+    def test_detect_branch_name_error_handling(self):
+        """Test error handling returns 'main' as fallback"""
+        provider = IacProvider()
+        # Pass a non-existent directory
+        branch_name = provider._detect_branch_name("/non/existent/path")
+        assert branch_name == "main"
