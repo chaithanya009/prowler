@@ -47,18 +47,22 @@ services:
       - "dev"
 
   ui-dev:
+    image: prowler-ui-dev
     build:
       context: ./ui
       dockerfile: Dockerfile
       target: dev
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=2048
     env_file:
       - path: .env
         required: false
+    restart: unless-stopped
     ports:
       - ${UI_HOST_PORT:-3000}:${UI_PORT:-3000}
     volumes:
-      - "./ui:/app"
-      - "/app/node_modules"
+      - ./ui:/app
+      - /app/node_modules
     depends_on:
       mcp-server:
         condition: service_healthy
@@ -138,11 +142,8 @@ services:
         retries: 10
 
   worker-dev:
+    profiles: ["workers"]
     image: prowler-api-dev
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-      target: dev
     environment:
       - DJANGO_SETTINGS_MODULE=config.django.devel
     env_file:
@@ -165,11 +166,8 @@ services:
       - "worker"
 
   worker-beat:
+    profiles: ["workers"]
     image: prowler-api-dev
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-      target: dev
     environment:
       - DJANGO_SETTINGS_MODULE=config.django.devel
     env_file:
