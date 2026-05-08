@@ -169,6 +169,13 @@ Follow conventional-commit style: `<type>[scope]: <description>`
 
 **Types:** `feat`, `fix`, `docs`, `chore`, `perf`, `refactor`, `style`, `test`
 
+## Local Git Guardrails
+
+- This clone belongs to `chaithanya009/prowler`. `origin` fetch/pull/push must point to `https://github.com/chaithanya009/prowler.git`.
+- Keep `prowler-cloud/prowler` only as `upstream` for fetching upstream changes. Its push URL should stay disabled.
+- To sync upstream changes, fetch/pull from `upstream`, merge or rebase locally, then push the result to `origin`.
+- Do not push directly to `prowler-cloud/prowler`.
+
 Before creating a PR:
 1. Complete checklist in `.github/pull_request_template.md`
 2. Run all relevant tests and linters

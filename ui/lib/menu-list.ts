@@ -1,6 +1,5 @@
 import {
   CloudCog,
-  Cog,
   GitBranch,
   Mail,
   MessageCircleQuestion,
@@ -22,7 +21,6 @@ import {
   APIdocIcon,
   DocIcon,
   GithubIcon,
-  LighthouseIcon,
   SupportIcon,
 } from "@/components/icons/Icons";
 import { GroupProps } from "@/types";
@@ -52,17 +50,6 @@ export const getMenuList = ({ pathname }: MenuListOptions): GroupProps[] => {
           label: "Compliance",
           icon: ShieldCheck,
           active: pathname === "/compliance",
-        },
-      ],
-    },
-    {
-      groupLabel: "",
-      menus: [
-        {
-          href: "/lighthouse",
-          label: "Lighthouse AI",
-          icon: LighthouseIcon,
-          active: pathname === "/lighthouse",
         },
       ],
     },
@@ -117,7 +104,6 @@ export const getMenuList = ({ pathname }: MenuListOptions): GroupProps[] => {
             { href: "/scans", label: "Scan Jobs", icon: Timer },
             { href: "/integrations", label: "Integrations", icon: Puzzle },
             { href: "/roles", label: "Roles", icon: UserCog },
-            { href: "/lighthouse/config", label: "Lighthouse AI", icon: Cog },
           ],
           defaultOpen: true,
         },
