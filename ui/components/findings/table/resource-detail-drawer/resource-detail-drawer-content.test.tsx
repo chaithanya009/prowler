@@ -15,25 +15,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // Hoist mocks for components that pull in next-auth transitively
 // ---------------------------------------------------------------------------
 
-const {
-  mockGetComplianceIcon,
-  mockClipboardWriteText,
-  mockNotificationIndicator,
-} = vi.hoisted(() => ({
-  mockGetComplianceIcon: vi.fn((_: string) => null as string | null),
-  mockClipboardWriteText: vi.fn(),
-  mockNotificationIndicator: vi.fn(),
-}));
+const { mockClipboardWriteText, mockNotificationIndicator } = vi.hoisted(
+  () => ({
+    mockClipboardWriteText: vi.fn(),
+    mockNotificationIndicator: vi.fn(),
+  }),
+);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/findings",
   useSearchParams: () => new URLSearchParams(),
   redirect: vi.fn(),
-}));
-
-vi.mock("next/image", () => ({
-  default: ({ alt }: { alt: string }) => <span role="img" aria-label={alt} />,
 }));
 
 vi.mock("next/link", () => ({
@@ -93,14 +86,26 @@ vi.mock("@/components/shadcn", () => {
         {children}
       </div>
     ),
-    Tabs: Passthrough,
+    Tabs: ({
+      children,
+      className,
+    }: {
+      children: ReactNode;
+      className?: string;
+    }) => <div className={className}>{children}</div>,
     TabsContent: ({
       children,
+      className,
       value,
     }: {
       children: ReactNode;
+      className?: string;
       value: string;
-    }) => <div data-value={value}>{children}</div>,
+    }) => (
+      <div className={className} data-value={value}>
+        {children}
+      </div>
+    ),
     TabsList: Passthrough,
     TabsTrigger: ({
       children,
@@ -240,10 +245,6 @@ vi.mock("@/components/shared/query-code-editor", () => ({
   ),
 }));
 
-vi.mock("@/components/icons", () => ({
-  getComplianceIcon: mockGetComplianceIcon,
-}));
-
 vi.mock("@/components/icons/services/IconServices", () => ({
   JiraIcon: () => null,
 }));
@@ -307,10 +308,6 @@ vi.mock("@/components/ui/table/status-finding-badge", () => ({
   StatusFindingBadge: ({ status }: { status: string }) => <span>{status}</span>,
 }));
 
-vi.mock("@/components/shared/events-timeline/events-timeline", () => ({
-  EventsTimeline: () => null,
-}));
-
 vi.mock("@/lib/region-flags", () => ({
   getRegionFlag: vi.fn(() => "🇺🇸"),
 }));
@@ -357,9 +354,6 @@ import type { CheckMeta } from "./use-resource-detail-drawer";
 
 afterEach(() => {
   vi.clearAllMocks();
-  mockGetComplianceIcon.mockImplementation(
-    (_: string) => null as string | null,
-  );
 });
 
 // ---------------------------------------------------------------------------
@@ -932,17 +926,8 @@ describe("ResourceDetailDrawerContent — Fix 5 & 6: Risk section styling", () =
   });
 });
 
-// ---------------------------------------------------------------------------
-// Fix 4: Compliance icon styling should match master
-// ---------------------------------------------------------------------------
-
-describe("ResourceDetailDrawerContent — compliance icon styling", () => {
-  it("should render framework icons inside the same white chip used in master", () => {
-    // Given
-    mockGetComplianceIcon.mockImplementation((framework: string) =>
-      framework === "CIS-1.4" ? "/cis.svg" : null,
-    );
-
+describe("ResourceDetailDrawerContent — hidden finding metadata", () => {
+  it("should not render compliance frameworks in the findings drawer", () => {
     render(
       <ResourceDetailDrawerContent
         isLoading={false}
@@ -958,19 +943,14 @@ describe("ResourceDetailDrawerContent — compliance icon styling", () => {
       />,
     );
 
-    // When
-    const icon = screen.getByRole("img", { name: "CIS-1.4" });
-    const chip = icon.closest("div");
-
-    // Then
-    expect(chip).toHaveClass("bg-white");
-    expect(chip).toHaveClass("border-gray-300");
+    expect(
+      screen.queryByText("Compliance Frameworks:"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("CIS-1.4")).not.toBeInTheDocument();
+    expect(screen.queryByText("PCI-DSS")).not.toBeInTheDocument();
   });
 
-  it("should render framework fallback pills with the same master styling", () => {
-    // Given
-    mockGetComplianceIcon.mockReturnValue(null);
-
+  it("should not render the Events tab in the findings drawer", () => {
     render(
       <ResourceDetailDrawerContent
         isLoading={false}
@@ -986,12 +966,58 @@ describe("ResourceDetailDrawerContent — compliance icon styling", () => {
       />,
     );
 
-    // When
-    const chip = screen.getByText("PCI-DSS");
+    expect(
+      screen.queryByRole("button", { name: "Events" }),
+    ).not.toBeInTheDocument();
+  });
 
-    // Then
-    expect(chip).toHaveClass("bg-white");
-    expect(chip).toHaveClass("border-gray-300");
+  it("should give finding tab panels the scrollable flex area", () => {
+    const { container } = render(
+      <ResourceDetailDrawerContent
+        isLoading={false}
+        isNavigating={false}
+        checkMeta={mockCheckMeta}
+        currentIndex={0}
+        totalResources={1}
+        currentFinding={mockFinding}
+        otherFindings={[]}
+        onNavigatePrev={vi.fn()}
+        onNavigateNext={vi.fn()}
+        onMuteComplete={vi.fn()}
+      />,
+    );
+
+    const overviewPanel = container.querySelector('div[data-value="overview"]');
+    const otherFindingsPanel = container.querySelector(
+      'div[data-value="other-findings"]',
+    );
+
+    expect(overviewPanel).toHaveClass("min-h-0");
+    expect(overviewPanel).toHaveClass("flex-1");
+    expect(overviewPanel).toHaveClass("overflow-y-auto");
+    expect(otherFindingsPanel).toHaveClass("min-h-0");
+    expect(otherFindingsPanel).toHaveClass("flex-1");
+    expect(otherFindingsPanel).toHaveClass("overflow-y-auto");
+  });
+
+  it("should not render Finding UID in the resource finding detail header", () => {
+    render(
+      <ResourceDetailDrawerContent
+        isLoading={false}
+        isNavigating={false}
+        checkMeta={mockCheckMeta}
+        currentIndex={0}
+        totalResources={1}
+        currentFinding={mockFinding}
+        otherFindings={[]}
+        onNavigatePrev={vi.fn()}
+        onNavigateNext={vi.fn()}
+        onMuteComplete={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText("Finding UID")).not.toBeInTheDocument();
+    expect(screen.queryByText(mockFinding.uid)).not.toBeInTheDocument();
   });
 });
 
@@ -1392,31 +1418,6 @@ describe("ResourceDetailDrawerContent — header skeleton while navigating", () 
     expect(screen.getByText("Launched At")).toBeInTheDocument();
     expect(screen.getByText("Scheduled At")).toBeInTheDocument();
     expect(screen.getByTestId("scans-navigation-skeleton")).toBeInTheDocument();
-  });
-
-  it("should keep the events tab shell visible while showing timeline row skeletons during navigation", () => {
-    // Given/When
-    render(
-      <ResourceDetailDrawerContent
-        isLoading={false}
-        isNavigating
-        checkMeta={mockCheckMeta}
-        currentIndex={0}
-        totalResources={2}
-        currentResource={mockResourceRow}
-        currentFinding={mockFinding}
-        otherFindings={[]}
-        onNavigatePrev={vi.fn()}
-        onNavigateNext={vi.fn()}
-        onMuteComplete={vi.fn()}
-      />,
-    );
-
-    // Then
-    expect(screen.getByRole("button", { name: "Events" })).toBeInTheDocument();
-    expect(
-      screen.getByTestId("events-navigation-skeleton"),
-    ).toBeInTheDocument();
   });
 });
 

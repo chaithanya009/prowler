@@ -1,5 +1,4 @@
 import {
-  ApiKeyLinkCard,
   JiraIntegrationCard,
   S3IntegrationCard,
   SecurityHubIntegrationCard,
@@ -30,9 +29,6 @@ export default async function Integrations() {
 
           {/* SSO Configuration - redirects to Profile */}
           <SsoLinkCard />
-
-          {/* API Keys - redirects to Profile */}
-          <ApiKeyLinkCard />
         </div>
       </div>
     </ContentLayout>

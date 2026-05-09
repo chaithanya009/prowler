@@ -9,7 +9,6 @@ import {
   VolumeOff,
   VolumeX,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -17,7 +16,6 @@ import type { ResourceDrawerFinding } from "@/actions/findings";
 import { MarkdownContainer } from "@/components/findings/markdown-container";
 import { MuteFindingsModal } from "@/components/findings/mute-findings-modal";
 import { SendToJiraModal } from "@/components/findings/send-to-jira-modal";
-import { getComplianceIcon } from "@/components/icons";
 import { JiraIcon } from "@/components/icons/services/IconServices";
 import {
   Badge,
@@ -35,12 +33,6 @@ import {
 } from "@/components/shadcn/dropdown";
 import { Skeleton } from "@/components/shadcn/skeleton/skeleton";
 import { LoadingState } from "@/components/shadcn/spinner/loading-state";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/shadcn/tooltip";
-import { EventsTimeline } from "@/components/shared/events-timeline/events-timeline";
 import {
   QUERY_EDITOR_LANGUAGE,
   QueryCodeEditor,
@@ -324,45 +316,6 @@ export function ResourceDetailDrawerContent({
             <h2 className="text-text-neutral-primary line-clamp-2 text-lg leading-tight font-medium">
               {checkMeta.checkTitle}
             </h2>
-
-            {checkMeta.complianceFrameworks.length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                <span className="text-text-neutral-tertiary text-xs font-medium">
-                  Compliance Frameworks:
-                </span>
-                <div className="flex flex-wrap items-center gap-2">
-                  {checkMeta.complianceFrameworks.map((framework) => {
-                    const icon = getComplianceIcon(framework);
-
-                    return icon ? (
-                      <Tooltip key={framework}>
-                        <TooltipTrigger asChild>
-                          <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white p-0.5">
-                            <Image
-                              src={icon}
-                              alt={framework}
-                              width={20}
-                              height={20}
-                              className="size-5 object-contain"
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>{framework}</TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip key={framework}>
-                        <TooltipTrigger asChild>
-                          <span className="text-text-neutral-secondary inline-flex h-7 shrink-0 items-center rounded-md border border-gray-300 bg-white px-1.5 text-xs">
-                            {framework}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>{framework}</TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </>
         ) : (
           <div
@@ -413,7 +366,7 @@ export function ResourceDetailDrawerContent({
       </div>
 
       {/* Resource card */}
-      <div className="border-border-neutral-secondary bg-bg-neutral-secondary minimal-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg border p-4">
+      <div className="border-border-neutral-secondary bg-bg-neutral-secondary flex min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-lg border p-4">
         {/* Resource info — shows loading when currentFinding is not yet available */}
         {!currentResource && !f ? (
           <ResourceDetailSkeleton />
@@ -482,19 +435,6 @@ export function ResourceDetailDrawerContent({
                     <Skeleton className="h-5 w-28 rounded" />
                   )}
                 </InfoField>
-                <InfoField label="Finding UID" variant="compact">
-                  {f?.uid ? (
-                    <CodeSnippet
-                      value={f.uid}
-                      transparent
-                      className="max-w-full text-sm"
-                    />
-                  ) : (
-                    <Skeleton className="h-5 w-36 rounded" />
-                  )}
-                </InfoField>
-
-                {/* Row 4: Resource metadata */}
                 <InfoField label="Resource type" variant="compact">
                   {resourceType || "-"}
                 </InfoField>
@@ -551,23 +491,22 @@ export function ResourceDetailDrawerContent({
         {/* Tabs */}
         <Tabs
           defaultValue="overview"
-          className="mt-2 flex min-h-fit w-full flex-1 flex-col md:min-h-0"
+          className="mt-2 flex min-h-0 w-full flex-1 flex-col overflow-hidden"
         >
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex shrink-0 items-center justify-between">
             <TabsList>
               <TabsTrigger value="overview">Finding Overview</TabsTrigger>
               <TabsTrigger value="other-findings">
                 Other Findings For This Resource
               </TabsTrigger>
               <TabsTrigger value="scans">Scans</TabsTrigger>
-              <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
           </div>
 
           {/* Finding Overview — check-level data from checkMeta (always stable) */}
           <TabsContent
             value="overview"
-            className="minimal-scrollbar flex flex-col gap-4 overflow-y-auto"
+            className="minimal-scrollbar min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
           >
             {showOverviewCheckMetaContent ? (
               <>
@@ -751,7 +690,7 @@ export function ResourceDetailDrawerContent({
           {/* Other Findings For This Resource */}
           <TabsContent
             value="other-findings"
-            className="minimal-scrollbar flex flex-col gap-2 overflow-y-auto"
+            className="minimal-scrollbar min-h-0 flex-1 flex-col gap-2 overflow-y-auto"
           >
             {!f && !isNavigating ? (
               <LoadingState spinnerClassName="size-5" />
@@ -833,7 +772,10 @@ export function ResourceDetailDrawerContent({
           </TabsContent>
 
           {/* Scans Tab */}
-          <TabsContent value="scans" className="flex flex-col gap-4">
+          <TabsContent
+            value="scans"
+            className="minimal-scrollbar min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
+          >
             {!f && !isNavigating ? (
               <p className="text-text-neutral-tertiary text-sm">
                 Scan information is not available.
@@ -905,23 +847,6 @@ export function ResourceDetailDrawerContent({
                     </InfoField>
                   )}
                 </div>
-              </>
-            )}
-          </TabsContent>
-
-          {/* Events Tab */}
-          <TabsContent
-            value="events"
-            className="flex min-h-0 flex-1 flex-col gap-4"
-          >
-            {isNavigating ? (
-              <EventsNavigationSkeleton />
-            ) : (
-              <>
-                <EventsTimeline
-                  resourceId={f?.resourceId}
-                  isAwsProvider={f?.providerType === "aws"}
-                />
               </>
             )}
           </TabsContent>
@@ -1034,29 +959,6 @@ function ScansInfoGridSkeleton({ labels }: { labels: string[] }) {
         <div key={index} className="flex flex-col gap-1">
           <span className="text-text-neutral-secondary text-xs">{label}</span>
           <Skeleton className="h-5 w-28 rounded" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function EventsNavigationSkeleton() {
-  return (
-    <div
-      className="flex flex-col gap-4"
-      data-testid="events-navigation-skeleton"
-      aria-hidden="true"
-    >
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div
-          key={index}
-          className="flex items-start gap-3 rounded-lg border p-4"
-        >
-          <Skeleton className="mt-0.5 size-3 rounded-full" />
-          <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-4 w-1/3 rounded" />
-            <Skeleton className="h-4 w-5/6 rounded" />
-          </div>
         </div>
       ))}
     </div>

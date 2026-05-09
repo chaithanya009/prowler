@@ -21,7 +21,6 @@ import {
   InfoTooltip,
 } from "@/components/shadcn/info-field/info-field";
 import { LoadingState } from "@/components/shadcn/spinner/loading-state";
-import { EventsTimeline } from "@/components/shared/events-timeline/events-timeline";
 import {
   QUERY_EDITOR_LANGUAGE,
   QueryCodeEditor,
@@ -110,7 +109,6 @@ export const ResourceDetailContent = ({
     null,
   );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [activeTab, setActiveTab] = useState("findings");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
@@ -360,8 +358,7 @@ export const ResourceDetailContent = ({
         </div>
 
         <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
+          defaultValue="findings"
           className="mt-2 flex min-h-0 w-full flex-1 flex-col"
         >
           <div className="mb-4 flex shrink-0 items-center justify-between">
@@ -374,7 +371,6 @@ export const ResourceDetailContent = ({
               </TabsTrigger>
               <TabsTrigger value="metadata">Metadata</TabsTrigger>
               <TabsTrigger value="tags">Tags</TabsTrigger>
-              <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
           </div>
 
@@ -468,15 +464,6 @@ export const ResourceDetailContent = ({
                 <p className="text-text-neutral-tertiary py-8 text-center text-sm">
                   No tags available for this resource.
                 </p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="events" className="flex flex-col gap-4">
-              {activeTab === "events" && (
-                <EventsTimeline
-                  resourceId={resourceId}
-                  isAwsProvider={providerData.provider === "aws"}
-                />
               )}
             </TabsContent>
           </div>
