@@ -1,7 +1,6 @@
 "use client";
 
 import { DownloadIcon, FileTextIcon } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import type { SectionScores } from "@/actions/overview/threat-score";
@@ -39,31 +38,10 @@ export const ThreatScoreBadge = ({
   provider,
   sectionScores,
 }: ThreatScoreBadgeProps) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [isDownloadingCsv, setIsDownloadingCsv] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const complianceId = `prowler_threatscore_${provider.toLowerCase()}`;
-
-  const handleCardClick = () => {
-    const title = "ProwlerThreatScore";
-    const version = "1.0";
-    const formattedTitleForUrl = encodeURIComponent(title);
-    const path = `/compliance/${formattedTitleForUrl}`;
-    const params = new URLSearchParams();
-
-    params.set("complianceId", complianceId);
-    params.set("version", version);
-    params.set("scanId", scanId);
-
-    const regionFilter = searchParams.get("filter[region__in]");
-    if (regionFilter) {
-      params.set("filter[region__in]", regionFilter);
-    }
-
-    router.push(`${path}?${params.toString()}`);
-  };
 
   const handleDownloadCsv = async () => {
     if (isDownloadingCsv) return;
@@ -92,12 +70,7 @@ export const ThreatScoreBadge = ({
   return (
     <Card variant="base" padding="md" className="relative gap-4">
       <CardContent className="flex flex-col gap-4 p-0 pr-14 lg:flex-row lg:items-start lg:gap-6">
-        {/* Clickable ThreatScore button */}
-        <button
-          className="border-border-neutral-secondary bg-bg-neutral-tertiary hover:border-border-neutral-primary hover:bg-bg-neutral-secondary flex shrink-0 cursor-pointer flex-row items-center justify-between gap-4 rounded-xl border p-3 pr-12 text-left transition-colors lg:pr-3"
-          onClick={handleCardClick}
-          type="button"
-        >
+        <div className="border-border-neutral-secondary bg-bg-neutral-tertiary flex shrink-0 flex-row items-center justify-between gap-4 rounded-xl border p-3 pr-12 text-left lg:pr-3">
           <ThreatScoreLogo />
 
           <div className="flex flex-col items-end gap-1">
@@ -111,7 +84,7 @@ export const ThreatScoreBadge = ({
               indicatorClassName={getScoreIndicatorClass(getScoreColor(score))}
             />
           </div>
-        </button>
+        </div>
 
         {/* Pillar breakdown — always visible */}
         {sectionScores && Object.keys(sectionScores).length > 0 && (

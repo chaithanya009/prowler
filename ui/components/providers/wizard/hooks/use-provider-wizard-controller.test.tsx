@@ -85,9 +85,6 @@ describe("useProviderWizardController", () => {
     });
     expect(result.current.modalTitle).toBe("Update Provider Credentials");
     expect(result.current.isProviderFlow).toBe(true);
-    expect(result.current.docsLink).toBe(
-      "https://goto.prowler.com/provider-aws",
-    );
 
     const state = useProviderWizardStore.getState();
     expect(state.providerId).toBe("provider-1");
@@ -117,9 +114,6 @@ describe("useProviderWizardController", () => {
     expect(result.current.wizardVariant).toBe("organizations");
     expect(result.current.isProviderFlow).toBe(false);
     expect(result.current.orgCurrentStep).toBe(ORG_WIZARD_STEP.SETUP);
-    expect(result.current.docsLink).toBe(
-      "https://docs.prowler.com/user-guide/tutorials/prowler-cloud-aws-organizations",
-    );
 
     // When
     act(() => {

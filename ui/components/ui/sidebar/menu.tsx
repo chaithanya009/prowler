@@ -1,10 +1,9 @@
 "use client";
 
-import { Divider } from "@heroui/divider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { AddIcon, InfoIcon } from "@/components/icons";
+import { AddIcon } from "@/components/icons";
 import { Button } from "@/components/shadcn/button/button";
 import {
   Tooltip,
@@ -127,42 +126,8 @@ export const Menu = ({ isOpen }: { isOpen: boolean }) => {
 
       {/* Footer */}
       <div className="text-muted-foreground border-border-neutral-secondary flex shrink-0 items-center justify-center gap-2 border-t pt-4 pb-2 text-center text-xs">
-        {isOpen ? (
-          <>
-            <span>{process.env.NEXT_PUBLIC_PROWLER_RELEASE_VERSION}</span>
-            {process.env.NEXT_PUBLIC_IS_CLOUD_ENV === "true" && (
-              <>
-                <Divider orientation="vertical" />
-                <Link
-                  href="https://status.prowler.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1"
-                >
-                  <InfoIcon size={16} />
-                  <span className="text-muted-foreground font-normal opacity-80 transition-opacity hover:font-bold hover:opacity-100">
-                    Service Status
-                  </span>
-                </Link>
-              </>
-            )}
-          </>
-        ) : (
-          process.env.NEXT_PUBLIC_IS_CLOUD_ENV === "true" && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="https://status.prowler.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center"
-                >
-                  <InfoIcon size={16} />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Service Status</TooltipContent>
-            </Tooltip>
-          )
+        {isOpen && (
+          <span>{process.env.NEXT_PUBLIC_PROWLER_RELEASE_VERSION}</span>
         )}
       </div>
     </div>

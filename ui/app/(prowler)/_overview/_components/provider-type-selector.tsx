@@ -14,79 +14,9 @@ import {
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { type ProviderProps, ProviderType } from "@/types/providers";
 
-const AWSProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.AWSProviderBadge,
-  })),
-);
-const AzureProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.AzureProviderBadge,
-  })),
-);
-const GCPProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.GCPProviderBadge,
-  })),
-);
-const KS8ProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.KS8ProviderBadge,
-  })),
-);
 const M365ProviderBadge = lazy(() =>
   import("@/components/icons/providers-badge").then((m) => ({
     default: m.M365ProviderBadge,
-  })),
-);
-const GitHubProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.GitHubProviderBadge,
-  })),
-);
-const IacProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.IacProviderBadge,
-  })),
-);
-const ImageProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.ImageProviderBadge,
-  })),
-);
-const OracleCloudProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.OracleCloudProviderBadge,
-  })),
-);
-const MongoDBAtlasProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.MongoDBAtlasProviderBadge,
-  })),
-);
-const AlibabaCloudProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.AlibabaCloudProviderBadge,
-  })),
-);
-const CloudflareProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.CloudflareProviderBadge,
-  })),
-);
-const OpenStackProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.OpenStackProviderBadge,
-  })),
-);
-const GoogleWorkspaceProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.GoogleWorkspaceProviderBadge,
-  })),
-);
-const VercelProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.VercelProviderBadge,
   })),
 );
 
@@ -97,70 +27,16 @@ const IconPlaceholder = ({ width, height }: IconProps) => (
 );
 
 const PROVIDER_DATA: Record<
-  ProviderType,
+  Extract<ProviderType, "m365">,
   { label: string; icon: ComponentType<IconProps> }
 > = {
-  aws: {
-    label: "Amazon Web Services",
-    icon: AWSProviderBadge,
-  },
-  azure: {
-    label: "Microsoft Azure",
-    icon: AzureProviderBadge,
-  },
-  gcp: {
-    label: "Google Cloud Platform",
-    icon: GCPProviderBadge,
-  },
-  kubernetes: {
-    label: "Kubernetes",
-    icon: KS8ProviderBadge,
-  },
   m365: {
     label: "Microsoft 365",
     icon: M365ProviderBadge,
   },
-  github: {
-    label: "GitHub",
-    icon: GitHubProviderBadge,
-  },
-  googleworkspace: {
-    label: "Google Workspace",
-    icon: GoogleWorkspaceProviderBadge,
-  },
-  iac: {
-    label: "Infrastructure as Code",
-    icon: IacProviderBadge,
-  },
-  image: {
-    label: "Container Registry",
-    icon: ImageProviderBadge,
-  },
-  oraclecloud: {
-    label: "Oracle Cloud Infrastructure",
-    icon: OracleCloudProviderBadge,
-  },
-  mongodbatlas: {
-    label: "MongoDB Atlas",
-    icon: MongoDBAtlasProviderBadge,
-  },
-  alibabacloud: {
-    label: "Alibaba Cloud",
-    icon: AlibabaCloudProviderBadge,
-  },
-  cloudflare: {
-    label: "Cloudflare",
-    icon: CloudflareProviderBadge,
-  },
-  openstack: {
-    label: "OpenStack",
-    icon: OpenStackProviderBadge,
-  },
-  vercel: {
-    label: "Vercel",
-    icon: VercelProviderBadge,
-  },
 };
+
+type VisibleProviderType = keyof typeof PROVIDER_DATA;
 
 /** Common props shared by both batch and instant modes. */
 interface ProviderTypeSelectorBaseProps {
@@ -214,7 +90,9 @@ export const ProviderTypeSelector = ({
     : [];
 
   // In batch mode, use the parent-controlled pending values; otherwise, use URL state.
-  const selectedTypes = onBatchChange ? selectedValues : urlSelectedTypes;
+  const selectedTypes = (
+    onBatchChange ? selectedValues : urlSelectedTypes
+  ).filter((type): type is VisibleProviderType => type === "m365");
 
   const handleMultiValueChange = (values: string[]) => {
     if (onBatchChange) {
@@ -238,12 +116,12 @@ export const ProviderTypeSelector = ({
         .map((p) => p.attributes.provider),
     ),
   )
-    .filter((type): type is ProviderType => type in PROVIDER_DATA)
+    .filter((type): type is VisibleProviderType => type === "m365")
     .sort((a, b) =>
       PROVIDER_DATA[a].label.localeCompare(PROVIDER_DATA[b].label),
     );
 
-  const renderIcon = (providerType: ProviderType) => {
+  const renderIcon = (providerType: VisibleProviderType) => {
     const IconComponent = PROVIDER_DATA[providerType].icon;
     return (
       <Suspense fallback={<IconPlaceholder width={24} height={24} />}>
@@ -255,7 +133,7 @@ export const ProviderTypeSelector = ({
   const selectedLabel = () => {
     if (selectedTypes.length === 0) return null;
     if (selectedTypes.length === 1) {
-      const providerType = selectedTypes[0] as ProviderType;
+      const providerType = selectedTypes[0];
       return (
         <span className="flex min-w-0 items-center gap-2">
           {renderIcon(providerType)}

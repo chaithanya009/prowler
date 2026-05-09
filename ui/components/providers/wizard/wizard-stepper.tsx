@@ -22,19 +22,18 @@ interface WizardStepperProps {
 const STEPS: StepConfig[] = [
   {
     label: "Link a Provider",
-    description: "Enter the provider details you would like to add in Prowler.",
+    description: "Enter the provider details you would like to add in Secto.",
     icon: FolderGit2,
   },
   {
     label: "Authenticate Credentials",
     description:
-      "Authorize a secure connection between Prowler and your provider.",
+      "Authorize a secure connection between Secto and your provider.",
     icon: KeyRound,
   },
   {
     label: "Validate Connection",
-    description:
-      "Review provider resources and test the connection to Prowler.",
+    description: "Review provider resources and test the connection to Secto.",
     icon: Rocket,
   },
   {

@@ -193,12 +193,12 @@ export const SignUpForm = ({
                     >
                       I agree with the&nbsp;
                       <CustomLink
-                        href="https://prowler.com/terms-of-service/"
+                        href="https://secto.io/terms-of-service/"
                         size="sm"
                       >
                         Terms of Service
                       </CustomLink>
-                      &nbsp;of Prowler
+                      &nbsp;of Secto
                     </Checkbox>
                   </FormControl>
                   <FormMessage className="text-text-error" />

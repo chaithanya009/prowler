@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/shadcn/card/card";
 import { Progress } from "@/components/shadcn/progress";
@@ -47,11 +47,9 @@ export const ComplianceCard: React.FC<ComplianceCardProps> = ({
   totalRequirements,
   scanId,
   complianceId,
-  id,
   isLatestCisForProvider = false,
 }) => {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const hasRegionFilter = searchParams.has("filter[region__in]");
 
   const formatTitle = (title: string) => {
@@ -68,29 +66,11 @@ export const ComplianceCard: React.FC<ComplianceCardProps> = ({
     return "success";
   };
 
-  const navigateToDetail = () => {
-    const formattedTitleForUrl = encodeURIComponent(title);
-    const path = `/compliance/${formattedTitleForUrl}`;
-    const params = new URLSearchParams();
-
-    params.set("complianceId", id);
-    params.set("version", version);
-    params.set("scanId", scanId);
-
-    const regionFilter = searchParams.get("filter[region__in]");
-    if (regionFilter) {
-      params.set("filter[region__in]", regionFilter);
-    }
-
-    router.push(`${path}?${params.toString()}`);
-  };
-
   return (
     <Card
       variant="base"
       padding="md"
-      className="relative cursor-pointer transition-shadow hover:shadow-md"
-      onClick={navigateToDetail}
+      className="relative transition-shadow hover:shadow-md"
     >
       <div
         className="absolute top-2 right-2 z-10"

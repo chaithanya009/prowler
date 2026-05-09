@@ -1,11 +1,8 @@
 import {
   CloudCog,
-  GitBranch,
   Mail,
-  MessageCircleQuestion,
   Puzzle,
   Settings,
-  ShieldCheck,
   SquareChartGantt,
   Tag,
   Timer,
@@ -16,13 +13,6 @@ import {
   Warehouse,
 } from "lucide-react";
 
-import { ProwlerShort } from "@/components/icons";
-import {
-  APIdocIcon,
-  DocIcon,
-  GithubIcon,
-  SupportIcon,
-} from "@/components/icons/Icons";
 import { GroupProps } from "@/types";
 
 interface MenuListOptions {
@@ -42,30 +32,6 @@ export const getMenuList = ({ pathname }: MenuListOptions): GroupProps[] => {
         },
       ],
     },
-    {
-      groupLabel: "",
-      menus: [
-        {
-          href: "/compliance",
-          label: "Compliance",
-          icon: ShieldCheck,
-          active: pathname === "/compliance",
-        },
-      ],
-    },
-    {
-      groupLabel: "",
-      menus: [
-        {
-          href: "/attack-paths",
-          label: "Attack Paths",
-          icon: GitBranch,
-          active: pathname.startsWith("/attack-paths"),
-          highlight: true,
-        },
-      ],
-    },
-
     {
       groupLabel: "",
       menus: [
@@ -121,58 +87,6 @@ export const getMenuList = ({ pathname }: MenuListOptions): GroupProps[] => {
             { href: "/invitations", label: "Invitations", icon: Mail },
           ],
           defaultOpen: false,
-        },
-      ],
-    },
-    {
-      groupLabel: "",
-      menus: [
-        {
-          href: "",
-          label: "Support & Help",
-          icon: SupportIcon,
-          submenus: [
-            {
-              href: "https://docs.prowler.com/",
-              target: "_blank",
-              label: "Documentation",
-              icon: DocIcon,
-            },
-            {
-              href:
-                process.env.NEXT_PUBLIC_IS_CLOUD_ENV === "true"
-                  ? "https://api.prowler.com/api/v1/docs"
-                  : `${process.env.NEXT_PUBLIC_API_DOCS_URL}`,
-              target: "_blank",
-              label: "API reference",
-              icon: APIdocIcon,
-            },
-            {
-              href: "https://customer.support.prowler.com/servicedesk/customer/portal/9/create/102",
-              target: "_blank",
-              label: "Customer Support",
-              icon: MessageCircleQuestion,
-            },
-            {
-              href: "https://github.com/prowler-cloud/prowler/issues",
-              target: "_blank",
-              label: "Community Support",
-              icon: GithubIcon,
-            },
-          ],
-          defaultOpen: false,
-        },
-      ],
-    },
-    {
-      groupLabel: "",
-      menus: [
-        {
-          href: "https://hub.prowler.com/",
-          label: "Prowler Hub",
-          icon: ProwlerShort,
-          target: "_blank",
-          tooltip: "Looking for all available checks? learn more.",
         },
       ],
     },

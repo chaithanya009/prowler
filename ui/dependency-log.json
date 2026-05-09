@@ -41,14 +41,6 @@
   },
   {
     "section": "dependencies",
-    "name": "@extractus/feed-extractor",
-    "from": "7.1.7",
-    "to": "7.1.7",
-    "strategy": "installed",
-    "generatedAt": "2026-01-19T15:06:16.239Z"
-  },
-  {
-    "section": "dependencies",
     "name": "@heroui/react",
     "from": "2.8.4",
     "to": "2.8.4",

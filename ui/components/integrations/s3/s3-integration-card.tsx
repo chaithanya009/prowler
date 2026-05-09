@@ -25,7 +25,7 @@ export const S3IntegrationCard = () => {
                   Export security findings to Amazon S3 buckets.
                 </p>
                 <CustomLink
-                  href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-s3-integration/"
+                  href="https://secto.io/docs"
                   aria-label="Learn more about S3 integration"
                   size="xs"
                 >

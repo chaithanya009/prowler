@@ -1,7 +1,7 @@
 /**
  * Sort presets for findings-shaped endpoints.
  *
- * The Prowler API exposes two families of findings endpoints with INVERTED
+ * The Secto API exposes two families of findings endpoints with INVERTED
  * sort semantics for the same human intent. Reading them wrong inverts the
  * triage order silently — a bug that has shipped more than once.
  *

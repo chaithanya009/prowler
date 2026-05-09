@@ -17,6 +17,10 @@ import { Form } from "@/components/ui/form";
 import { addProviderFormSchema, ApiError, ProviderType } from "@/types";
 
 import { RadioGroupProvider } from "../../radio-group-provider";
+import {
+  getAddProviderErrorMessage,
+  getCreatedProvider,
+} from "./connect-account-form.utils";
 
 export type FormValues = z.infer<typeof addProviderFormSchema>;
 
@@ -244,25 +248,42 @@ export const ConnectAccountForm = ({
           }
         });
         return;
-      } else {
-        // Go to the next step after successful submission
-        const {
-          id,
-          attributes: { provider: createdProviderType, uid, alias },
-        } = data.data;
-
-        if (onSuccess) {
-          onSuccess({
-            id,
-            providerType: createdProviderType,
-            uid: uid || values.providerUid,
-            alias: alias ?? values.providerAlias ?? null,
-          });
-          return;
-        }
-
-        router.push("/providers");
       }
+
+      const errorMessage = getAddProviderErrorMessage(data);
+
+      if (errorMessage) {
+        toast({
+          variant: "destructive",
+          title: "Provider Creation Error",
+          description: errorMessage,
+        });
+        return;
+      }
+
+      const createdProvider = getCreatedProvider(data);
+
+      if (!createdProvider) {
+        return;
+      }
+
+      // Go to the next step after successful submission
+      const {
+        id,
+        attributes: { provider: createdProviderType, uid, alias },
+      } = createdProvider;
+
+      if (onSuccess) {
+        onSuccess({
+          id,
+          providerType: createdProviderType,
+          uid: uid || values.providerUid,
+          alias: alias ?? values.providerAlias ?? null,
+        });
+        return;
+      }
+
+      router.push("/providers");
     } catch (error: unknown) {
       console.error("Error during submission:", error);
       toast({

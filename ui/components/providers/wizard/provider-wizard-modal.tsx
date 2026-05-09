@@ -1,7 +1,5 @@
 "use client";
 
-import { ExternalLink, Info } from "lucide-react";
-
 import { OrgAccountSelection } from "@/components/providers/organizations/org-account-selection";
 import { OrgLaunchScan } from "@/components/providers/organizations/org-launch-scan";
 import { OrgSetupForm } from "@/components/providers/organizations/org-setup-form";
@@ -16,10 +14,7 @@ import {
 } from "@/types/provider-wizard";
 
 import { useProviderWizardController } from "./hooks/use-provider-wizard-controller";
-import {
-  getOrganizationsStepperOffset,
-  getProviderWizardDocsDestination,
-} from "./provider-wizard-modal.utils";
+import { getOrganizationsStepperOffset } from "./provider-wizard-modal.utils";
 import { ConnectStep } from "./steps/connect-step";
 import { CredentialsStep } from "./steps/credentials-step";
 import { WIZARD_FOOTER_ACTION_TYPE } from "./steps/footer-controls";
@@ -49,7 +44,6 @@ export function ProviderWizardModal({
   const {
     backToProviderFlow,
     currentStep,
-    docsLink,
     handleClose,
     handleDialogOpenChange,
     handleTestSuccess,
@@ -78,7 +72,6 @@ export function ProviderWizardModal({
     enabled: open,
     refreshToken: scrollHintRefreshToken,
   });
-  const docsDestination = getProviderWizardDocsDestination(docsLink);
 
   return (
     <Modal
@@ -91,16 +84,6 @@ export function ProviderWizardModal({
         <DialogTitle className="text-lg font-semibold">
           {modalTitle}
         </DialogTitle>
-        <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
-          <Info className="size-4 shrink-0" />
-          <span>For assistance connecting a Provider visit</span>
-          <Button variant="link" size="link-sm" className="h-auto p-0" asChild>
-            <a href={docsLink} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="size-3.5 shrink-0" />
-              <span>{`${docsDestination} documentation`}</span>
-            </a>
-          </Button>
-        </div>
       </DialogHeader>
 
       <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden lg:mt-8 lg:flex-row">

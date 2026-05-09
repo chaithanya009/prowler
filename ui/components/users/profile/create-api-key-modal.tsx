@@ -99,9 +99,7 @@ export const CreateApiKeyModal = ({
         >
           <p className="text-xs text-gray-500">
             Need help configuring API Keys?{" "}
-            <CustomLink href="https://docs.prowler.com/user-guide/tutorials/prowler-app-api-keys">
-              Read the docs
-            </CustomLink>
+            <CustomLink href="https://secto.io/docs">Read the docs</CustomLink>
           </p>
 
           <div className="flex w-full justify-center gap-6">

@@ -113,7 +113,7 @@ export const SamlIntegrationCard = ({ samlConfig }: { samlConfig?: any }) => {
               ) : (
                 <>
                   Configure SAML Single Sign-On for secure authentication.{" "}
-                  <CustomLink href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-sso">
+                  <CustomLink href="https://secto.io/docs">
                     Read the docs
                   </CustomLink>
                 </>

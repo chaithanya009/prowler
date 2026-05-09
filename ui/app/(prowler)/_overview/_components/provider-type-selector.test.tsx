@@ -73,9 +73,9 @@ const providers = [
     id: "provider-1",
     type: "providers" as const,
     attributes: {
-      provider: "aws" as const,
+      provider: "m365" as const,
       uid: "123456789012",
-      alias: "Production AWS",
+      alias: "Production M365",
       status: "completed" as const,
       resources: 0,
       connection: {
@@ -116,7 +116,7 @@ describe("ProviderTypeSelector", () => {
       placeholder: "Search providers...",
       emptyMessage: "No providers found.",
     });
-    expect(screen.getByText("Amazon Web Services")).toBeInTheDocument();
+    expect(screen.getByText("Microsoft 365")).toBeInTheDocument();
   });
 
   it("allows disabling search explicitly", () => {
@@ -129,10 +129,10 @@ describe("ProviderTypeSelector", () => {
     render(<ProviderTypeSelector providers={providers} />);
 
     expect(
-      screen.getByText("Amazon Web Services").closest("[data-value]"),
+      screen.getByText("Microsoft 365").closest("[data-value]"),
     ).toHaveAttribute(
       "data-keywords",
-      expect.stringContaining("Amazon Web Services"),
+      expect.stringContaining("Microsoft 365"),
     );
   });
 });

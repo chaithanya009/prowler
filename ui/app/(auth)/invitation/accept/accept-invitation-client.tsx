@@ -179,7 +179,7 @@ export function AcceptInvitationClient({
                 You&apos;ve Been Invited
               </h1>
               <p className="text-default-500 mt-2">
-                You&apos;ve been invited to join a tenant on Prowler. How would
+                You&apos;ve been invited to join a tenant on Secto. How would
                 you like to continue?
               </p>
             </div>

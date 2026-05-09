@@ -20,9 +20,7 @@ export const SocialButtons = ({
       content={
         <div className="flex-inline text-small">
           Social Login with Google is not enabled.{" "}
-          <CustomLink href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-social-login/#google-oauth-configuration">
-            Read the docs
-          </CustomLink>
+          <CustomLink href="https://secto.io/docs">Read the docs</CustomLink>
         </div>
       }
       placement="top"
@@ -55,9 +53,7 @@ export const SocialButtons = ({
       content={
         <div className="flex-inline text-small">
           Social Login with Github is not enabled.{" "}
-          <CustomLink href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-social-login/#github-oauth-configuration">
-            Read the docs
-          </CustomLink>
+          <CustomLink href="https://secto.io/docs">Read the docs</CustomLink>
         </div>
       }
       placement="top"

@@ -430,16 +430,12 @@ export async function loadProvidersAccountsViewData({
   const { encodedSort } = extractSortAndKey(searchParams);
   const { filters, query } = extractFiltersAndQuery(searchParams);
 
-  const providerFilters = { ...filters };
+  const providerFilters = {
+    ...filters,
+    [`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`]: "m365",
+  };
 
-  // Map provider_type__in (used by ProviderTypeSelector) to provider__in (API param)
-  const providerTypeFilter =
-    providerFilters[`filter[${PROVIDERS_PAGE_FILTER.PROVIDER_TYPE}]`];
-  if (providerTypeFilter) {
-    providerFilters[`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`] =
-      providerTypeFilter;
-  }
-
+  delete providerFilters["filter[provider]"];
   delete providerFilters[`filter[${PROVIDERS_PAGE_FILTER.PROVIDER_TYPE}]`];
 
   const emptyOrganizationsResponse: OrganizationListResponse = {
@@ -467,7 +463,12 @@ export async function loadProvidersAccountsViewData({
     ),
     // Unfiltered fetch for ProviderTypeSelector — only needs distinct types;
     // TODO: Replace with a dedicated lightweight endpoint when available.
-    resolveActionResult(getProviders({ pageSize: 500 })),
+    resolveActionResult(
+      getProviders({
+        filters: { [`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`]: "m365" },
+        pageSize: 500,
+      }),
+    ),
     // Fetch active scheduled scans to determine daily schedule per provider
     resolveActionResult(
       getScans({
