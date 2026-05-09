@@ -10,7 +10,7 @@ export const SsoLinkCard = () => {
       icon={ShieldCheckIcon}
       title="SSO Configuration"
       description="Configure SAML Single Sign-On for your organization."
-      learnMoreUrl="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-sso/"
+      learnMoreUrl="https://secto.io/docs"
       learnMoreAriaLabel="Learn more about SSO configuration"
       bodyText="SSO configuration is available in your User Profile. Enable SAML Single Sign-On to allow users to authenticate using your organization's identity provider."
       linkHref="/profile"

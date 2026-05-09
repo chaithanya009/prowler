@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { DOCS_URLS, getProviderHelpText } from "@/lib/external-urls";
 import { useOrgSetupStore } from "@/store/organizations/store";
 import { useProviderWizardStore } from "@/store/provider-wizard/store";
 import {
@@ -92,7 +91,6 @@ export function useProviderWizardController({
     setSecretId,
     setMode,
     mode,
-    providerType,
   } = useProviderWizardStore();
   const { reset: resetOrgWizard, setOrganization } = useOrgSetupStore();
 
@@ -225,15 +223,11 @@ export function useProviderWizardController({
   };
 
   const isProviderFlow = wizardVariant === WIZARD_VARIANT.PROVIDER;
-  const docsLink = isProviderFlow
-    ? getProviderHelpText(providerTypeHint ?? providerType ?? "").link
-    : DOCS_URLS.AWS_ORGANIZATIONS;
   const resolvedFooterConfig: WizardFooterConfig = footerConfig;
   const modalTitle = getProviderWizardModalTitle(mode);
 
   return {
     currentStep,
-    docsLink,
     footerConfig,
     handleClose,
     handleDialogOpenChange,

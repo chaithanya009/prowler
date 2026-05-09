@@ -11,10 +11,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { getCompliancesOverview } from "@/actions/compliances";
 import type { ResourceDrawerFinding } from "@/actions/findings";
 import { MarkdownContainer } from "@/components/findings/markdown-container";
 import { MuteFindingsModal } from "@/components/findings/mute-findings-modal";
@@ -69,8 +67,10 @@ import { getFailingForLabel } from "@/lib/date-utils";
 import { formatDuration } from "@/lib/date-utils";
 import { getRegionFlag } from "@/lib/region-flags";
 import { cn } from "@/lib/utils";
-import { getRecommendationLinkLabel } from "@/lib/vulnerability-references";
-import type { ComplianceOverviewData } from "@/types/compliance";
+import {
+  getRecommendationLinkLabel,
+  isProwlerReferenceUrl,
+} from "@/lib/vulnerability-references";
 import type { FindingResourceRow } from "@/types/findings-table";
 
 import { Muted } from "../../muted";
@@ -147,165 +147,6 @@ function renderRemediationCodeBlock({
   );
 }
 
-function normalizeComplianceFrameworkName(framework: string): string {
-  return framework
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_]+/g, "-")
-    .replace(/-+/g, "-");
-}
-
-function stripComplianceVersionSuffix(framework: string): string {
-  return framework.replace(/-\d+(?:\.\d+)*$/g, "");
-}
-
-function canonicalComplianceKey(framework: string): string {
-  return stripComplianceVersionSuffix(
-    normalizeComplianceFrameworkName(framework),
-  )
-    .replace(/[^a-z0-9]+/g, "")
-    .trim();
-}
-
-function complianceTokens(framework: string): string[] {
-  return stripComplianceVersionSuffix(
-    normalizeComplianceFrameworkName(framework),
-  )
-    .split("-")
-    .map((token) => token.trim())
-    .filter(Boolean)
-    .filter((token) => !/^\d+(?:\.\d+)*$/.test(token));
-}
-
-function complianceMatchScore(
-  sourceFramework: string,
-  targetFramework: string,
-): number {
-  const normalizedSource = normalizeComplianceFrameworkName(sourceFramework);
-  const normalizedTarget = normalizeComplianceFrameworkName(targetFramework);
-
-  if (normalizedSource === normalizedTarget) {
-    return 5;
-  }
-
-  const canonicalSource = canonicalComplianceKey(sourceFramework);
-  const canonicalTarget = canonicalComplianceKey(targetFramework);
-
-  if (canonicalSource === canonicalTarget) {
-    return 4;
-  }
-
-  if (canonicalSource && canonicalTarget) {
-    const sourceTokens = canonicalSource.split("-");
-    const targetTokens = canonicalTarget.split("-");
-    if (
-      sourceTokens.length !== targetTokens.length &&
-      (sourceTokens.every((t) => targetTokens.includes(t)) ||
-        targetTokens.every((t) => sourceTokens.includes(t)))
-    ) {
-      return 3;
-    }
-  }
-
-  const sourceTokens = complianceTokens(sourceFramework);
-  const targetTokens = complianceTokens(targetFramework);
-  if (!sourceTokens.length || !targetTokens.length) {
-    return 0;
-  }
-
-  const sourceMatchesTarget = sourceTokens.every((token) =>
-    targetTokens.includes(token),
-  );
-  const targetMatchesSource = targetTokens.every((token) =>
-    sourceTokens.includes(token),
-  );
-
-  if (sourceMatchesTarget || targetMatchesSource) {
-    return 2;
-  }
-
-  if (
-    sourceTokens.some((token) => targetTokens.includes(token)) &&
-    canonicalSource &&
-    canonicalTarget &&
-    (canonicalTarget.includes(canonicalSource) ||
-      canonicalSource.includes(canonicalTarget))
-  ) {
-    return 1;
-  }
-
-  return 0;
-}
-
-function parseSelectedScanIds(scanFilterValue: string | null): string[] {
-  if (!scanFilterValue) {
-    return [];
-  }
-
-  return scanFilterValue
-    .split(",")
-    .map((scanId) => scanId.trim())
-    .filter(Boolean);
-}
-
-function resolveComplianceMatch(
-  compliances: ComplianceOverviewData[] | undefined,
-  framework: string,
-): {
-  complianceId: string;
-  framework: string;
-  version: string;
-} | null {
-  if (!compliances?.length) {
-    return null;
-  }
-
-  const match = compliances
-    .map((compliance) => ({
-      compliance,
-      score: complianceMatchScore(framework, compliance.attributes.framework),
-    }))
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score)[0]?.compliance;
-
-  if (!match) {
-    return null;
-  }
-
-  return {
-    complianceId: match.id,
-    framework: match.attributes.framework,
-    version: match.attributes.version,
-  };
-}
-
-function buildComplianceDetailHref({
-  complianceId,
-  framework,
-  version,
-  scanId,
-  regionFilter,
-}: {
-  complianceId: string;
-  framework: string;
-  version: string;
-  scanId: string;
-  regionFilter: string | null;
-}): string {
-  const params = new URLSearchParams();
-  params.set("complianceId", complianceId);
-  if (version) {
-    params.set("version", version);
-  }
-  params.set("scanId", scanId);
-
-  if (regionFilter) {
-    params.set("filter[region__in]", regionFilter);
-  }
-
-  return `/compliance/${encodeURIComponent(framework)}?${params.toString()}`;
-}
-
 function buildResourceDetailHref(resourceId: string): string {
   const params = new URLSearchParams();
   params.set("resourceId", resourceId);
@@ -341,12 +182,8 @@ export function ResourceDetailDrawerContent({
   onNavigateNext,
   onMuteComplete,
 }: ResourceDetailDrawerContentProps) {
-  const searchParams = useSearchParams();
   const [isMuteModalOpen, setIsMuteModalOpen] = useState(false);
   const [isJiraModalOpen, setIsJiraModalOpen] = useState(false);
-  const [resolvingFramework, setResolvingFramework] = useState<string | null>(
-    null,
-  );
   const [optimisticallyMutedIds, setOptimisticallyMutedIds] = useState<
     Set<string>
   >(new Set());
@@ -416,16 +253,6 @@ export function ResourceDetailDrawerContent({
   const lastSeenAt = currentResource?.lastSeenAt ?? f?.updatedAt ?? null;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < totalResources - 1;
-  const selectedScanIds = parseSelectedScanIds(
-    searchParams.get("filter[scan__in]"),
-  );
-  const complianceScanId =
-    selectedScanIds.length === 1
-      ? selectedScanIds[0]
-      : selectedScanIds.length === 0
-        ? (f?.scan?.id ?? null)
-        : null;
-  const regionFilter = searchParams.get("filter[region__in]");
   const nativeIacConfig = resolveNativeIacConfig(providerType);
   const showOverviewCheckMetaContent = showCheckMetaContent;
   const showOverviewFindingContent = Boolean(f);
@@ -439,52 +266,15 @@ export function ResourceDetailDrawerContent({
     : isNonEmptyString(checkRecommendationUrl)
       ? checkRecommendationUrl
       : null;
-  const recommendationLink = recommendationUrl
-    ? {
-        href: recommendationUrl,
-        label: getRecommendationLinkLabel(recommendationUrl),
-      }
-    : null;
+  const recommendationLink =
+    recommendationUrl && !isProwlerReferenceUrl(recommendationUrl)
+      ? {
+          href: recommendationUrl,
+          label: getRecommendationLinkLabel(recommendationUrl),
+        }
+      : null;
   const overviewStatusExtended = f?.statusExtended;
   const showOverviewStatusExtended = Boolean(overviewStatusExtended);
-
-  const handleOpenCompliance = async (framework: string) => {
-    if (!complianceScanId || resolvingFramework) {
-      return;
-    }
-
-    setResolvingFramework(framework);
-
-    try {
-      const compliancesOverview = await getCompliancesOverview({
-        scanId: complianceScanId,
-      });
-      const complianceMatch = resolveComplianceMatch(
-        compliancesOverview?.data,
-        framework,
-      );
-
-      if (!complianceMatch) {
-        return;
-      }
-
-      window.open(
-        buildComplianceDetailHref({
-          complianceId: complianceMatch.complianceId,
-          framework: complianceMatch.framework,
-          version: complianceMatch.version,
-          scanId: complianceScanId,
-          regionFilter,
-        }),
-        "_blank",
-        "noopener,noreferrer",
-      );
-    } catch (error) {
-      console.error("Error resolving compliance detail:", error);
-    } finally {
-      setResolvingFramework(null);
-    }
-  };
 
   return (
     <div className="flex h-full min-w-0 flex-col gap-4 overflow-hidden">
@@ -543,74 +333,28 @@ export function ResourceDetailDrawerContent({
                 <div className="flex flex-wrap items-center gap-2">
                   {checkMeta.complianceFrameworks.map((framework) => {
                     const icon = getComplianceIcon(framework);
-                    const isNavigable = Boolean(complianceScanId);
-                    const isResolving = resolvingFramework === framework;
 
                     return icon ? (
                       <Tooltip key={framework}>
                         <TooltipTrigger asChild>
-                          {isNavigable ? (
-                            <button
-                              type="button"
-                              aria-label={`Open ${framework} compliance details`}
-                              onClick={() =>
-                                void handleOpenCompliance(framework)
-                              }
-                              disabled={Boolean(resolvingFramework)}
-                              className="flex size-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white p-0.5 transition-shadow hover:shadow-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-70"
-                            >
-                              <Image
-                                src={icon}
-                                alt={framework}
-                                width={20}
-                                height={20}
-                                className="size-5 object-contain"
-                              />
-                              {isResolving && (
-                                <span className="sr-only">
-                                  Opening compliance
-                                </span>
-                              )}
-                            </button>
-                          ) : (
-                            <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white p-0.5">
-                              <Image
-                                src={icon}
-                                alt={framework}
-                                width={20}
-                                height={20}
-                                className="size-5 object-contain"
-                              />
-                            </div>
-                          )}
+                          <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white p-0.5">
+                            <Image
+                              src={icon}
+                              alt={framework}
+                              width={20}
+                              height={20}
+                              className="size-5 object-contain"
+                            />
+                          </div>
                         </TooltipTrigger>
                         <TooltipContent>{framework}</TooltipContent>
                       </Tooltip>
                     ) : (
                       <Tooltip key={framework}>
                         <TooltipTrigger asChild>
-                          {isNavigable ? (
-                            <button
-                              type="button"
-                              aria-label={`Open ${framework} compliance details`}
-                              onClick={() =>
-                                void handleOpenCompliance(framework)
-                              }
-                              disabled={Boolean(resolvingFramework)}
-                              className="text-text-neutral-secondary inline-flex h-7 shrink-0 items-center rounded-md border border-gray-300 bg-white px-1.5 text-xs transition-shadow hover:shadow-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-70"
-                            >
-                              {framework}
-                              {isResolving && (
-                                <span className="sr-only">
-                                  Opening compliance
-                                </span>
-                              )}
-                            </button>
-                          ) : (
-                            <span className="text-text-neutral-secondary inline-flex h-7 shrink-0 items-center rounded-md border border-gray-300 bg-white px-1.5 text-xs">
-                              {framework}
-                            </span>
-                          )}
+                          <span className="text-text-neutral-secondary inline-flex h-7 shrink-0 items-center rounded-md border border-gray-300 bg-white px-1.5 text-xs">
+                            {framework}
+                          </span>
                         </TooltipTrigger>
                         <TooltipContent>{framework}</TooltipContent>
                       </Tooltip>

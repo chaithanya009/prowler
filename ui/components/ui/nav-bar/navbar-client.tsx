@@ -1,9 +1,7 @@
 "use client";
 
-import { BellRing } from "lucide-react";
 import { ReactNode } from "react";
 
-import { Button } from "@/components/shadcn";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { BreadcrumbNavigation } from "@/components/ui";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -15,10 +13,9 @@ import { UserNav } from "../user-nav/user-nav";
 interface NavbarClientProps {
   title: string;
   icon?: string | ReactNode;
-  feedsSlot?: ReactNode;
 }
 
-export function NavbarClient({ title, icon, feedsSlot }: NavbarClientProps) {
+export function NavbarClient({ title, icon }: NavbarClientProps) {
   const { isOpen, toggleOpen } = useSidebar();
 
   return (
@@ -38,22 +35,9 @@ export function NavbarClient({ title, icon, feedsSlot }: NavbarClientProps) {
         </div>
         <div className="flex flex-1 items-center justify-end gap-3">
           <ThemeSwitch />
-          {feedsSlot}
           <UserNav />
         </div>
       </div>
     </header>
-  );
-}
-
-export function FeedsLoadingFallback() {
-  return (
-    <Button
-      variant="outline"
-      className="border-border-input-primary-fill relative h-8 w-8 rounded-full bg-transparent p-2"
-      disabled
-    >
-      <BellRing size={18} className="animate-pulse text-slate-400" />
-    </Button>
   );
 }

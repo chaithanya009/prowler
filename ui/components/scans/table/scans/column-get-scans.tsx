@@ -146,24 +146,6 @@ export const ColumnGetScans: ColumnDef<ScanProps>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: "compliance",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Compliance" />
-    ),
-    cell: ({ row }) => {
-      const { id } = getScanData(row);
-      const scanState = row.original.attributes?.state;
-      return (
-        <TableLink
-          href={`/compliance?scanId=${id}`}
-          isDisabled={!["completed"].includes(scanState)}
-          label="See Compliance"
-        />
-      );
-    },
-    enableSorting: false,
-  },
-  {
     accessorKey: "resources",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Impacted Resources" />

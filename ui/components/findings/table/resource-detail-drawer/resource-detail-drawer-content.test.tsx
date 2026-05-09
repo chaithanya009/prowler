@@ -17,24 +17,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const {
   mockGetComplianceIcon,
-  mockGetCompliancesOverview,
-  mockWindowOpen,
   mockClipboardWriteText,
-  mockSearchParamsState,
   mockNotificationIndicator,
 } = vi.hoisted(() => ({
   mockGetComplianceIcon: vi.fn((_: string) => null as string | null),
-  mockGetCompliancesOverview: vi.fn(),
-  mockWindowOpen: vi.fn(),
   mockClipboardWriteText: vi.fn(),
-  mockSearchParamsState: { value: "" },
   mockNotificationIndicator: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => "/findings",
-  useSearchParams: () => new URLSearchParams(mockSearchParamsState.value),
+  useSearchParams: () => new URLSearchParams(),
   redirect: vi.fn(),
 }));
 
@@ -246,10 +240,6 @@ vi.mock("@/components/shared/query-code-editor", () => ({
   ),
 }));
 
-vi.mock("@/actions/compliances", () => ({
-  getCompliancesOverview: mockGetCompliancesOverview,
-}));
-
 vi.mock("@/components/icons", () => ({
   getComplianceIcon: mockGetComplianceIcon,
 }));
@@ -367,7 +357,6 @@ import type { CheckMeta } from "./use-resource-detail-drawer";
 
 afterEach(() => {
   vi.clearAllMocks();
-  mockSearchParamsState.value = "";
   mockGetComplianceIcon.mockImplementation(
     (_: string) => null as string | null,
   );
@@ -691,12 +680,10 @@ describe("ResourceDetailDrawerContent — CVE recommendation button", () => {
       externalCveUrl,
     );
     expect(screen.getByText(statusExtendedWithFixVersions)).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "View in Prowler Hub" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "View Reference" })).toBeNull();
   });
 
-  it("should show View in Prowler Hub when the recommendation URL points to Prowler Hub", () => {
+  it("should hide recommendation links that point to Prowler Hub", () => {
     const hubCheckMeta: CheckMeta = {
       ...mockCheckMeta,
       remediation: {
@@ -736,11 +723,8 @@ describe("ResourceDetailDrawerContent — CVE recommendation button", () => {
 
     expect(screen.getByText(statusExtendedWithFixVersions)).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "View in Prowler Hub" }),
-    ).toHaveAttribute(
-      "href",
-      "https://hub.prowler.com/check/image_vulnerability",
-    );
+      screen.queryByRole("link", { name: "View Reference" }),
+    ).not.toBeInTheDocument();
   });
 
   it("should render the official CVE reference", () => {
@@ -1008,214 +992,6 @@ describe("ResourceDetailDrawerContent — compliance icon styling", () => {
     // Then
     expect(chip).toHaveClass("bg-white");
     expect(chip).toHaveClass("border-gray-300");
-  });
-});
-
-describe("ResourceDetailDrawerContent — compliance navigation", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it("should resolve the clicked framework against the selected scan and navigate to compliance detail", async () => {
-    // Given
-    const user = userEvent.setup();
-    vi.stubGlobal("open", mockWindowOpen);
-    mockSearchParamsState.value =
-      "filter[scan__in]=scan-selected&filter[region__in]=eu-west-1";
-    mockGetCompliancesOverview.mockResolvedValue({
-      data: [
-        {
-          id: "compliance-1",
-          type: "compliance-overviews",
-          attributes: {
-            framework: "PCI-DSS",
-            version: "4.0",
-            requirements_passed: 10,
-            requirements_failed: 2,
-            requirements_manual: 0,
-            total_requirements: 12,
-          },
-        },
-      ],
-    });
-
-    render(
-      <ResourceDetailDrawerContent
-        isLoading={false}
-        isNavigating={false}
-        checkMeta={mockCheckMeta}
-        currentIndex={0}
-        totalResources={1}
-        currentFinding={mockFinding}
-        otherFindings={[]}
-        onNavigatePrev={vi.fn()}
-        onNavigateNext={vi.fn()}
-        onMuteComplete={vi.fn()}
-      />,
-    );
-
-    // When
-    await user.click(
-      screen.getByRole("button", {
-        name: "Open PCI-DSS compliance details",
-      }),
-    );
-
-    // Then
-    expect(mockGetCompliancesOverview).toHaveBeenCalledWith({
-      scanId: "scan-selected",
-    });
-    expect(mockWindowOpen).toHaveBeenCalledWith(
-      "/compliance/PCI-DSS?complianceId=compliance-1&version=4.0&scanId=scan-selected&filter%5Bregion__in%5D=eu-west-1",
-      "_blank",
-      "noopener,noreferrer",
-    );
-  });
-
-  it("should use the current finding scan when no scan filter is active", async () => {
-    // Given
-    const user = userEvent.setup();
-    vi.stubGlobal("open", mockWindowOpen);
-    mockGetCompliancesOverview.mockResolvedValue({
-      data: [
-        {
-          id: "compliance-2",
-          type: "compliance-overviews",
-          attributes: {
-            framework: "PCI-DSS",
-            version: "4.0",
-            requirements_passed: 10,
-            requirements_failed: 2,
-            requirements_manual: 0,
-            total_requirements: 12,
-          },
-        },
-      ],
-    });
-    const findingWithScan = {
-      ...mockFinding,
-      scan: {
-        id: "scan-from-finding",
-        name: "Nightly scan",
-        trigger: "manual",
-        state: "completed",
-        uniqueResourceCount: 25,
-        progress: 100,
-        duration: 300,
-        startedAt: "2026-03-30T10:00:00Z",
-        completedAt: "2026-03-30T10:05:00Z",
-        insertedAt: "2026-03-30T09:59:00Z",
-        scheduledAt: null,
-      },
-    };
-
-    render(
-      <ResourceDetailDrawerContent
-        isLoading={false}
-        isNavigating={false}
-        checkMeta={mockCheckMeta}
-        currentIndex={0}
-        totalResources={1}
-        currentFinding={findingWithScan}
-        otherFindings={[]}
-        onNavigatePrev={vi.fn()}
-        onNavigateNext={vi.fn()}
-        onMuteComplete={vi.fn()}
-      />,
-    );
-
-    // When
-    await user.click(
-      screen.getByRole("button", {
-        name: "Open PCI-DSS compliance details",
-      }),
-    );
-
-    // Then
-    expect(mockGetCompliancesOverview).toHaveBeenCalledWith({
-      scanId: "scan-from-finding",
-    });
-    expect(mockWindowOpen).toHaveBeenCalledWith(
-      "/compliance/PCI-DSS?complianceId=compliance-2&version=4.0&scanId=scan-from-finding",
-      "_blank",
-      "noopener,noreferrer",
-    );
-  });
-
-  it("should navigate when the finding framework is a short alias of the compliance overview framework", async () => {
-    // Given
-    const user = userEvent.setup();
-    vi.stubGlobal("open", mockWindowOpen);
-    mockGetComplianceIcon.mockImplementation((framework: string) =>
-      framework.toLowerCase().includes("kisa") ? "/kisa.svg" : null,
-    );
-    mockGetCompliancesOverview.mockResolvedValue({
-      data: [
-        {
-          id: "compliance-kisa",
-          type: "compliance-overviews",
-          attributes: {
-            framework: "KISA-ISMS-P",
-            version: "1.0",
-            requirements_passed: 5,
-            requirements_failed: 1,
-            requirements_manual: 0,
-            total_requirements: 6,
-          },
-        },
-      ],
-    });
-    const findingWithScan = {
-      ...mockFinding,
-      scan: {
-        id: "scan-from-finding",
-        name: "Nightly scan",
-        trigger: "manual",
-        state: "completed",
-        uniqueResourceCount: 25,
-        progress: 100,
-        duration: 300,
-        startedAt: "2026-03-30T10:00:00Z",
-        completedAt: "2026-03-30T10:05:00Z",
-        insertedAt: "2026-03-30T09:59:00Z",
-        scheduledAt: null,
-      },
-    };
-
-    render(
-      <ResourceDetailDrawerContent
-        isLoading={false}
-        isNavigating={false}
-        checkMeta={{
-          ...mockCheckMeta,
-          complianceFrameworks: ["KISA"],
-        }}
-        currentIndex={0}
-        totalResources={1}
-        currentFinding={findingWithScan}
-        otherFindings={[]}
-        onNavigatePrev={vi.fn()}
-        onNavigateNext={vi.fn()}
-        onMuteComplete={vi.fn()}
-      />,
-    );
-
-    // When
-    await user.click(
-      screen.getByRole("button", {
-        name: "Open KISA compliance details",
-      }),
-    );
-
-    // Then
-    expect(mockGetCompliancesOverview).toHaveBeenCalledWith({
-      scanId: "scan-from-finding",
-    });
-    expect(mockWindowOpen).toHaveBeenCalledWith(
-      "/compliance/KISA-ISMS-P?complianceId=compliance-kisa&version=1.0&scanId=scan-from-finding",
-      "_blank",
-      "noopener,noreferrer",
-    );
   });
 });
 

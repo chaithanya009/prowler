@@ -3,7 +3,7 @@
 import { BreadcrumbItem, Breadcrumbs } from "@heroui/breadcrumbs";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -33,18 +33,15 @@ export function BreadcrumbNavigation({
   icon,
   customItems = [],
   className = "",
-  paramToPreserve = "scanId",
   showTitle = true,
 }: BreadcrumbNavigationProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const generateAutoBreadcrumbs = (): CustomBreadcrumbItem[] => {
     const pathIconMapping: Record<string, string | ReactNode> = {
       "/integrations": "lucide:puzzle",
       "/providers": "lucide:cloud",
       "/users": "lucide:users",
-      "/compliance": "lucide:shield-check",
       "/findings": "lucide:search",
       "/scans": "lucide:activity",
       "/roles": "lucide:key",
@@ -52,7 +49,6 @@ export function BreadcrumbNavigation({
       "/manage-groups": "lucide:users-2",
       "/services": "lucide:server",
       "/workloads": "lucide:layers",
-      "/attack-paths": "lucide:git-branch",
     };
 
     const pathSegments = pathname
@@ -90,14 +86,6 @@ export function BreadcrumbNavigation({
     });
 
     return breadcrumbs;
-  };
-
-  const buildNavigationUrl = (path: string) => {
-    const paramValue = searchParams.get(paramToPreserve);
-    if (path === "/compliance" && paramValue) {
-      return `/compliance?${paramToPreserve}=${paramValue}`;
-    }
-    return path;
   };
 
   const renderTitleWithIcon = (titleText: string, isLink: boolean = false) => (
@@ -146,7 +134,7 @@ export function BreadcrumbNavigation({
               renderTitleWithIcon(title)
             ) : breadcrumb.isClickable && breadcrumb.path ? (
               <Link
-                href={buildNavigationUrl(breadcrumb.path)}
+                href={breadcrumb.path}
                 className="flex cursor-pointer items-center gap-2"
               >
                 {breadcrumb.icon && typeof breadcrumb.icon === "string" ? (

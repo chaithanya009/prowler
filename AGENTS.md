@@ -5,6 +5,7 @@
 - Start here for cross-project norms. Prowler is a monorepo with several components.
 - Each component has an `AGENTS.md` file with specific guidelines (e.g., `api/AGENTS.md`, `ui/AGENTS.md`).
 - Component docs override this file when guidance conflicts.
+- For fork-specific UI migration context, read [Migration Guide](docs/developer-guide/migration-guide.mdx). This project builds on top of Prowler, has already removed Lighthouse UI features, is removing upstream Prowler-facing links such as Prowler Hub, Support & Help, and Latest Updates, and replaces user-facing Prowler branding with Secto branding. Update the migration guide whenever a relevant fork migration decision or user-facing branding change is made.
 
 ## Available Skills
 

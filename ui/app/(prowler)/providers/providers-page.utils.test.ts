@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const providersActionsMock = vi.hoisted(() => ({
   getProviders: vi.fn(),
@@ -616,6 +616,10 @@ describe("buildProvidersTableRows", () => {
 });
 
 describe("loadProvidersAccountsViewData", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("does not call organizations endpoints in OSS", async () => {
     // Given
     providersActionsMock.getProviders.mockResolvedValue(providersResponse);
@@ -637,6 +641,17 @@ describe("loadProvidersAccountsViewData", () => {
     expect(viewData.filters.map((filter) => filter.labelCheckboxGroup)).toEqual(
       ["Status"],
     );
+    expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(1, {
+      filters: { "filter[provider__in]": "m365" },
+      page: 1,
+      pageSize: 10,
+      query: "",
+      sort: "",
+    });
+    expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(2, {
+      filters: { "filter[provider__in]": "m365" },
+      pageSize: 500,
+    });
   });
 
   it("loads organizations filters and recursive rows in cloud", async () => {
@@ -719,6 +734,35 @@ describe("loadProvidersAccountsViewData", () => {
       ["Status"],
     );
     expect(viewData.rows[0].rowType).toBe(PROVIDERS_ROW_TYPE.ORGANIZATION);
+    expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        filters: { "filter[provider__in]": "m365" },
+      }),
+    );
+  });
+
+  it("keeps the Microsoft 365 provider filter even when another provider is requested", async () => {
+    // Given
+    providersActionsMock.getProviders.mockResolvedValue(providersResponse);
+    scansActionsMock.getScans.mockResolvedValue({ data: [] });
+
+    // When
+    await loadProvidersAccountsViewData({
+      searchParams: {
+        "filter[provider]": "aws",
+        "filter[provider_type__in]": "aws",
+      } satisfies SearchParamsProps,
+      isCloud: false,
+    });
+
+    // Then
+    expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        filters: { "filter[provider__in]": "m365" },
+      }),
+    );
   });
 
   it("falls back to empty cloud grouping data when organizations endpoints fail", async () => {

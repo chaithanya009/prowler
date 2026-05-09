@@ -32,7 +32,7 @@ export const AlibabaCloudRoleCredentialsForm = ({
         type="text"
         label="Role ARN"
         labelPlacement="inside"
-        placeholder="e.g. acs:ram::1234567890123456:role/ProwlerRole"
+        placeholder="e.g. acs:ram::1234567890123456:role/SectoRole"
         variant="bordered"
         isRequired
       />
@@ -72,7 +72,7 @@ export const AlibabaCloudRoleCredentialsForm = ({
         type="text"
         label="Role Session Name"
         labelPlacement="inside"
-        placeholder="Enter the role session name (default: ProwlerSession)"
+        placeholder="Enter the role session name (default: SectoSession)"
         variant="bordered"
         isRequired={false}
       />

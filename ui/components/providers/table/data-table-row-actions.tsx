@@ -120,7 +120,7 @@ function OrgGroupDropdownActions({
             currentValue={rowData.name}
             label="Name"
             successMessage="The organization name was updated successfully."
-            helperText="If left blank, Prowler will use the name stored in AWS."
+            helperText="If left blank, Secto will use the name stored in AWS."
             setIsOpen={setIsEditNameOpen}
             onSave={(name) => updateOrganizationName(rowData.id, name)}
           />

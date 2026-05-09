@@ -51,7 +51,7 @@ const orgSetupSchema = z.object({
     .min(1, "Role ARN is required")
     .regex(
       /^arn:aws:iam::\d{12}:role\//,
-      "Must be a valid IAM Role ARN (e.g., arn:aws:iam::123456789012:role/ProwlerScan)",
+      "Must be a valid IAM Role ARN (e.g., arn:aws:iam::123456789012:role/SectoScan)",
     ),
   stackSetDeployed: z.boolean().refine((value) => value, {
     message: "You must confirm the StackSet deployment before continuing.",
@@ -265,7 +265,7 @@ export function OrgSetupForm({
 
             <p className="text-muted-foreground text-sm">
               Enter the Organization ID for the accounts you want to add to
-              Prowler.
+              Secto.
             </p>
           </div>
         )}
@@ -325,8 +325,7 @@ export function OrgSetupForm({
             />
 
             <p className="text-muted-foreground text-sm">
-              If left blank, Prowler will use the Organization name stored in
-              AWS.
+              If left blank, Secto will use the Organization name stored in AWS.
             </p>
           </div>
         )}
@@ -368,7 +367,7 @@ export function OrgSetupForm({
             {/* Step 1: Management account - CloudFormation Stack */}
             <div className="flex flex-col gap-4">
               <p className="text-text-neutral-primary text-sm leading-7 font-normal">
-                1) Deploy the ProwlerScan role in your{" "}
+                1) Deploy the SectoScan role in your{" "}
                 <strong>management account</strong> using a CloudFormation
                 Stack.
               </p>
@@ -393,9 +392,8 @@ export function OrgSetupForm({
             {/* Step 2: Member accounts - CloudFormation StackSet */}
             <div className="flex flex-col gap-4">
               <p className="text-text-neutral-primary text-sm leading-7 font-normal">
-                2) Deploy the ProwlerScan role to{" "}
-                <strong>member accounts</strong> using a CloudFormation
-                StackSet.
+                2) Deploy the SectoScan role to <strong>member accounts</strong>{" "}
+                using a CloudFormation StackSet.
               </p>
               <p className="text-text-neutral-tertiary text-xs leading-5">
                 Open the StackSets console, select{" "}
@@ -451,7 +449,7 @@ export function OrgSetupForm({
               name="roleArn"
               label="Management Account Role ARN"
               labelPlacement="outside"
-              placeholder="e.g. arn:aws:iam::123456789012:role/ProwlerScan"
+              placeholder="e.g. arn:aws:iam::123456789012:role/SectoScan"
               isRequired={false}
               requiredIndicator
             />

@@ -209,10 +209,7 @@ export function AdvancedMutelistForm() {
                 </li>
                 <li>
                   Learn more about configuring the Mutelist{" "}
-                  <CustomLink
-                    size="sm"
-                    href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-mute-findings"
-                  >
+                  <CustomLink size="sm" href="https://secto.io/docs">
                     here
                   </CustomLink>
                   .

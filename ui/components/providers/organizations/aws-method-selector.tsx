@@ -18,7 +18,7 @@ export function AwsMethodSelector({
   return (
     <div className="flex flex-col gap-3">
       <p className="text-muted-foreground text-sm">
-        Select a method to add your accounts to Prowler.
+        Select a method to add your accounts to Secto.
       </p>
 
       <RadioCard
@@ -42,7 +42,7 @@ export function AwsMethodSelector({
 function CtaBadge() {
   return (
     <a
-      href="https://prowler.com/pricing"
+      href="https://secto.io/pricing"
       target="_blank"
       rel="noopener noreferrer"
       className="flex h-[52px] shrink-0 items-center justify-center rounded-lg px-4 py-3 transition-opacity hover:opacity-90"
@@ -53,7 +53,7 @@ function CtaBadge() {
     >
       <div className="flex items-center gap-1.5">
         <span className="text-primary-foreground text-sm leading-6 font-bold">
-          Available in Prowler Cloud
+          Available in Secto
         </span>
       </div>
     </a>

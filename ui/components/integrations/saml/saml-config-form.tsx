@@ -265,13 +265,7 @@ export const SamlConfigForm = ({
     >
       <div className="py-1 text-xs">
         Need help configuring SAML SSO?{" "}
-        <CustomLink
-          href={
-            "https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-sso/"
-          }
-        >
-          Read the docs
-        </CustomLink>
+        <CustomLink href={"https://secto.io/docs"}>Read the docs</CustomLink>
       </div>
       <input type="hidden" name="id" value={samlConfig?.id || ""} />
       <CustomServerInput
@@ -320,7 +314,7 @@ export const SamlConfigForm = ({
                 Audience:
               </span>
               <CodeSnippet
-                value="urn:prowler.com:sp"
+                value="urn:secto.io:sp"
                 ariaLabel="Copy Audience"
                 className="h-10 w-full"
               />
