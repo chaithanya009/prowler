@@ -7,6 +7,7 @@ from tasks.tasks import perform_scheduled_scan_task
 from api.db_utils import rls_transaction
 from api.exceptions import ConflictException
 from api.models import Provider, Scan, StateChoices
+from secto.schedules import ensure_m365_log_pull_schedule
 from tasks.jobs.attack_paths import db_utils as attack_paths_db_utils
 
 
@@ -62,6 +63,7 @@ def schedule_provider_scan(provider_instance: Provider):
     )
     scheduled_scan.scheduler_task_id = periodic_task_instance.id
     scheduled_scan.save()
+    ensure_m365_log_pull_schedule(provider_instance)
 
     return perform_scheduled_scan_task.apply_async(
         kwargs={
