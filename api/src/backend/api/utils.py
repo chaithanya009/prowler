@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
+import requests
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Subquery
@@ -318,6 +319,9 @@ def prowler_provider_connection_test(provider: Provider) -> Connection:
     Returns:
         Connection: A connection object representing the result of the connection test for the specified provider.
     """
+    if provider.provider == Provider.ProviderChoices.OKTA.value:
+        return okta_provider_connection_test(provider)
+
     prowler_provider = return_prowler_provider(provider)
 
     try:
@@ -373,6 +377,29 @@ def prowler_provider_connection_test(provider: Provider) -> Connection:
             provider_id=provider.uid,
             raise_on_exception=False,
         )
+
+
+def okta_provider_connection_test(provider: Provider) -> Connection:
+    try:
+        secret = provider.secret.secret
+    except Provider.secret.RelatedObjectDoesNotExist as secret_error:
+        return Connection(is_connected=False, error=secret_error)
+
+    try:
+        response = requests.get(
+            f"{secret['org_url'].rstrip('/')}/api/v1/logs",
+            headers={
+                "Authorization": f"SSWS {secret['api_token']}",
+                "Accept": "application/json",
+            },
+            params={"limit": 1},
+            timeout=60,
+        )
+        response.raise_for_status()
+    except Exception as error:
+        return Connection(is_connected=False, error=error)
+
+    return Connection(is_connected=True)
 
 
 def prowler_integration_connection_test(integration: Integration) -> Connection:

@@ -44,6 +44,8 @@ const PROVIDERS_STATUS_MAPPING = [
   },
 ] as Array<{ [key: string]: FilterEntity }>;
 
+const PROVIDER_ACCOUNT_TYPES = "m365,okta";
+
 interface ProvidersAccountsViewInput {
   isCloud: boolean;
   searchParams: SearchParamsProps;
@@ -432,7 +434,7 @@ export async function loadProvidersAccountsViewData({
 
   const providerFilters = {
     ...filters,
-    [`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`]: "m365",
+    [`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`]: PROVIDER_ACCOUNT_TYPES,
   };
 
   delete providerFilters["filter[provider]"];
@@ -465,7 +467,9 @@ export async function loadProvidersAccountsViewData({
     // TODO: Replace with a dedicated lightweight endpoint when available.
     resolveActionResult(
       getProviders({
-        filters: { [`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`]: "m365" },
+        filters: {
+          [`filter[${PROVIDERS_PAGE_FILTER.PROVIDER}]`]: PROVIDER_ACCOUNT_TYPES,
+        },
         pageSize: 500,
       }),
     ),

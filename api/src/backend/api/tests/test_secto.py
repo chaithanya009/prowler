@@ -8,17 +8,19 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from tasks.beat import schedule_provider_scan
 from tasks.tasks import perform_scan_task
 
-from api.models import ProviderSecret, Scan, StateChoices
+from api.models import Provider, ProviderSecret, Scan, StateChoices
+from api.v1.serializers import BaseWriteProviderSecretSerializer
 from secto.detectors import OFFICE_HOME_APP_ID, detect_session_hijacking
-from secto.ingestion import pull_m365_logs
+from secto.ingestion import pull_m365_logs, pull_okta_logs
 from secto.models import (
     M365AuditLog,
     M365SignInLog,
     M365UnifiedAuditLog,
+    OktaSystemLog,
     SectoLogCursor,
     SectoThreat,
 )
-from secto.schedules import ensure_m365_log_pull_schedule
+from secto.schedules import ensure_log_pull_schedule
 
 
 @pytest.mark.django_db
@@ -125,6 +127,112 @@ class TestSectoSessionHijacking:
 
 @pytest.mark.django_db
 class TestSectoIngestion:
+    def test_pull_okta_logs_stores_system_logs_and_updates_cursor(
+        self, tenants_fixture
+    ):
+        tenant = tenants_fixture[0]
+        provider = Provider.objects.create(
+            tenant_id=tenant.id,
+            provider=Provider.ProviderChoices.OKTA,
+            uid="acme.okta.com",
+            alias="okta",
+        )
+        ProviderSecret.objects.create(
+            tenant_id=tenant.id,
+            provider=provider,
+            secret_type=ProviderSecret.TypeChoices.STATIC,
+            name="okta",
+            secret={
+                "org_url": "https://acme.okta.com",
+                "api_token": "fake-api-token",
+            },
+        )
+        now = datetime(2026, 5, 9, 12, 0, tzinfo=timezone.utc)
+        first_body = [
+            {
+                "uuid": "event-1",
+                "published": "2026-05-09T11:50:00.000Z",
+                "eventType": "user.session.start",
+                "displayMessage": "User login to Okta",
+                "severity": "INFO",
+                "outcome": {"result": "SUCCESS"},
+                "actor": {
+                    "id": "user-1",
+                    "alternateId": "user@example.com",
+                    "displayName": "User One",
+                },
+                "client": {
+                    "ipAddress": "198.51.100.10",
+                    "userAgent": {"rawUserAgent": "Mozilla/5.0"},
+                },
+                "request": {
+                    "ipChain": [
+                        {
+                            "ip": "198.51.100.10",
+                            "geographicalContext": {"country": "United States"},
+                        }
+                    ]
+                },
+                "target": [{"id": "app-1", "type": "AppInstance"}],
+            }
+        ]
+        second_body = [
+            {
+                "uuid": "event-2",
+                "published": "2026-05-09T11:55:00.000Z",
+                "eventType": "user.mfa.factor.activate",
+                "displayMessage": "Activate factor",
+                "severity": "WARN",
+            }
+        ]
+
+        def response(body, links=None):
+            mocked_response = Mock()
+            mocked_response.json.return_value = body
+            mocked_response.raise_for_status.return_value = None
+            mocked_response.links = links or {}
+            return mocked_response
+
+        def get_response(url, params=None, **kwargs):
+            assert kwargs["headers"]["Authorization"] == "SSWS fake-api-token"
+            if params:
+                assert url == "https://acme.okta.com/api/v1/logs"
+                assert params["sortOrder"] == "ASCENDING"
+                assert params["limit"] == 1000
+                assert params["since"] == "2026-05-08T12:00:00Z"
+                assert params["until"] == "2026-05-09T12:00:00Z"
+                return response(
+                    first_body,
+                    {"next": {"url": "https://acme.okta.com/api/v1/logs?after=abc"}},
+                )
+            assert url == "https://acme.okta.com/api/v1/logs?after=abc"
+            return response(second_body)
+
+        with patch("secto.ingestion.requests.get", side_effect=get_response):
+            result = pull_okta_logs(
+                tenant_id=str(tenant.id),
+                provider_id=str(provider.id),
+                now=now,
+            )
+
+        assert result == {"system_events": 2}
+        assert OktaSystemLog.objects.count() == 2
+        assert OktaSystemLog.objects.get(source_id="event-1").actor_alternate_id == (
+            "user@example.com"
+        )
+        cursor = SectoLogCursor.objects.get(provider=provider)
+        assert cursor.okta_system_cursor_at == now
+
+    def test_validate_okta_secret_requires_org_url_and_api_token(self):
+        BaseWriteProviderSecretSerializer.validate_secret_based_on_provider(
+            Provider.ProviderChoices.OKTA.value,
+            ProviderSecret.TypeChoices.STATIC,
+            {
+                "org_url": "https://acme.okta.com",
+                "api_token": "fake-api-token",
+            },
+        )
+
     def test_pull_m365_logs_stores_events_updates_cursor_and_detects_threat(
         self, tenants_fixture, providers_fixture
     ):
@@ -328,13 +436,36 @@ class TestSectoIngestion:
 
 @pytest.mark.django_db
 class TestSectoScheduling:
+    def test_ensure_log_pull_schedule_creates_okta_five_minute_task(
+        self, tenants_fixture
+    ):
+        tenant = tenants_fixture[0]
+        provider = Provider.objects.create(
+            tenant_id=tenant.id,
+            provider=Provider.ProviderChoices.OKTA,
+            uid="acme.okta.com",
+            alias="okta",
+        )
+
+        periodic_task = ensure_log_pull_schedule(provider)
+        repeated_task = ensure_log_pull_schedule(provider)
+
+        assert repeated_task.id == periodic_task.id
+        assert periodic_task.task == "secto-okta-log-pull"
+        assert periodic_task.interval.every == 5
+        assert periodic_task.interval.period == IntervalSchedule.MINUTES
+        assert json.loads(periodic_task.kwargs) == {
+            "tenant_id": str(provider.tenant_id),
+            "provider_id": str(provider.id),
+        }
+
     def test_ensure_m365_log_pull_schedule_creates_five_minute_task(
         self, providers_fixture
     ):
         provider = providers_fixture[5]
 
-        periodic_task = ensure_m365_log_pull_schedule(provider)
-        repeated_task = ensure_m365_log_pull_schedule(provider)
+        periodic_task = ensure_log_pull_schedule(provider)
+        repeated_task = ensure_log_pull_schedule(provider)
 
         assert repeated_task.id == periodic_task.id
         assert periodic_task.task == "secto-m365-log-pull"

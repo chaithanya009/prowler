@@ -19,6 +19,11 @@ const M365ProviderBadge = lazy(() =>
     default: m.M365ProviderBadge,
   })),
 );
+const OktaProviderBadge = lazy(() =>
+  import("@/components/icons/providers-badge").then((m) => ({
+    default: m.OktaProviderBadge,
+  })),
+);
 
 type IconProps = { width: number; height: number };
 
@@ -27,12 +32,16 @@ const IconPlaceholder = ({ width, height }: IconProps) => (
 );
 
 const PROVIDER_DATA: Record<
-  Extract<ProviderType, "m365">,
+  Extract<ProviderType, "m365" | "okta">,
   { label: string; icon: ComponentType<IconProps> }
 > = {
   m365: {
     label: "Microsoft 365",
     icon: M365ProviderBadge,
+  },
+  okta: {
+    label: "Okta",
+    icon: OktaProviderBadge,
   },
 };
 
@@ -92,7 +101,7 @@ export const ProviderTypeSelector = ({
   // In batch mode, use the parent-controlled pending values; otherwise, use URL state.
   const selectedTypes = (
     onBatchChange ? selectedValues : urlSelectedTypes
-  ).filter((type): type is VisibleProviderType => type === "m365");
+  ).filter((type): type is VisibleProviderType => type in PROVIDER_DATA);
 
   const handleMultiValueChange = (values: string[]) => {
     if (onBatchChange) {
@@ -116,7 +125,7 @@ export const ProviderTypeSelector = ({
         .map((p) => p.attributes.provider),
     ),
   )
-    .filter((type): type is VisibleProviderType => type === "m365")
+    .filter((type): type is VisibleProviderType => type in PROVIDER_DATA)
     .sort((a, b) =>
       PROVIDER_DATA[a].label.localeCompare(PROVIDER_DATA[b].label),
     );

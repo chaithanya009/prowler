@@ -41,7 +41,7 @@ export function LaunchStep({
   onFooterChange,
 }: LaunchStepProps) {
   const { toast } = useToast();
-  const { providerId } = useProviderWizardStore();
+  const { providerId, providerType } = useProviderWizardStore();
   const [isLaunching, setIsLaunching] = useState(false);
   const [scheduleOption, setScheduleOption] = useState<ScanScheduleOption>(
     SCAN_SCHEDULE.DAILY,
@@ -73,6 +73,19 @@ export function LaunchStep({
 
     setIsLaunching(false);
     onClose();
+    if (providerType === "okta") {
+      toast({
+        title: "Ingestion Launched",
+        description: "Okta log ingestion will run every 5 minutes.",
+        action: (
+          <ToastAction altText="Go to providers" asChild>
+            <Link href="/providers">Go to providers</Link>
+          </ToastAction>
+        ),
+      });
+      return;
+    }
+
     toast({
       title: "Scan Launched",
       description:
@@ -98,21 +111,32 @@ export function LaunchStep({
       backDisabled: isLaunching,
       onBack,
       showAction: true,
-      actionLabel: isLaunching ? "Launching scans..." : "Launch scan",
+      actionLabel:
+        providerType === "okta"
+          ? isLaunching
+            ? "Launching ingestion..."
+            : "Launch ingestion"
+          : isLaunching
+            ? "Launching scans..."
+            : "Launch scan",
       actionDisabled: isLaunching || !providerId,
       actionType: WIZARD_FOOTER_ACTION_TYPE.BUTTON,
       onAction: () => {
         launchActionRef.current();
       },
     });
-  }, [isLaunching, onBack, onFooterChange, providerId]);
+  }, [isLaunching, onBack, onFooterChange, providerId, providerType]);
 
   if (isLaunching) {
     return (
       <div className="flex min-h-[320px] items-center justify-center">
         <div className="flex items-center gap-3 py-2">
           <Spinner className="size-6" />
-          <p className="text-sm font-medium">Launching scans...</p>
+          <p className="text-sm font-medium">
+            {providerType === "okta"
+              ? "Launching ingestion..."
+              : "Launching scans..."}
+          </p>
         </div>
       </div>
     );
@@ -126,7 +150,9 @@ export function LaunchStep({
       </div>
 
       <p className="text-text-neutral-secondary text-sm">
-        Choose how you want to launch scans for this provider.
+        {providerType === "okta"
+          ? "Launch recurring log ingestion for this provider."
+          : "Choose how you want to launch scans for this provider."}
       </p>
 
       {!providerId && (
@@ -135,28 +161,34 @@ export function LaunchStep({
         </p>
       )}
 
-      <div className="flex flex-col gap-4">
-        <p className="text-text-neutral-secondary text-sm">Scan schedule</p>
-        <Select
-          value={scheduleOption}
-          onValueChange={(value) =>
-            setScheduleOption(value as ScanScheduleOption)
-          }
-          disabled={isLaunching || !providerId}
-        >
-          <SelectTrigger className="w-full max-w-[376px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={SCAN_SCHEDULE.DAILY}>
-              Scan Daily (every 24 hours)
-            </SelectItem>
-            <SelectItem value={SCAN_SCHEDULE.SINGLE}>
-              Run a single scan (no recurring schedule)
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {providerType === "okta" ? (
+        <p className="text-text-neutral-secondary text-sm">
+          Okta System Log ingestion will run every 5 minutes.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <p className="text-text-neutral-secondary text-sm">Scan schedule</p>
+          <Select
+            value={scheduleOption}
+            onValueChange={(value) =>
+              setScheduleOption(value as ScanScheduleOption)
+            }
+            disabled={isLaunching || !providerId}
+          >
+            <SelectTrigger className="w-full max-w-[376px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SCAN_SCHEDULE.DAILY}>
+                Scan Daily (every 24 hours)
+              </SelectItem>
+              <SelectItem value={SCAN_SCHEDULE.SINGLE}>
+                Run a single scan (no recurring schedule)
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }

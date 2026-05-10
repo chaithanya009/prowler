@@ -151,6 +151,59 @@ class M365UnifiedAuditLog(RowLevelSecurityProtectedModel):
         resource_name = "secto-m365-unified-audit-logs"
 
 
+class OktaSystemLog(RowLevelSecurityProtectedModel):
+    tenant = models.ForeignKey("api.Tenant", on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    inserted_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+    provider = models.ForeignKey(
+        Provider,
+        on_delete=models.CASCADE,
+        related_name="secto_okta_system_logs",
+        related_query_name="secto_okta_system_log",
+    )
+    source_id = models.CharField(max_length=255)
+    timestamp = models.DateTimeField()
+    event_type = models.CharField(max_length=255)
+    display_message = models.CharField(max_length=500, blank=True)
+    severity = models.CharField(max_length=50, blank=True)
+    outcome = models.JSONField(default=dict, blank=True)
+    actor_id = models.CharField(max_length=255, blank=True)
+    actor_alternate_id = models.CharField(max_length=500, blank=True)
+    actor_display_name = models.CharField(max_length=500, blank=True)
+    client_ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=1000, blank=True)
+    targets = models.JSONField(default=list, blank=True)
+    raw_event = models.JSONField(default=dict, blank=True)
+
+    class Meta(RowLevelSecurityProtectedModel.Meta):
+        db_table = "secto_okta_system_logs"
+        constraints = [
+            RowLevelSecurityConstraint(
+                field="tenant_id",
+                name="rls_on_%(class)s",
+                statements=["SELECT", "INSERT", "UPDATE", "DELETE"],
+            ),
+            models.UniqueConstraint(
+                fields=["tenant_id", "provider", "source_id"],
+                name="unique_secto_okta_system_source",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["tenant_id", "provider", "timestamp"],
+                name="secto_okta_t_prov_ts",
+            ),
+            models.Index(
+                fields=["tenant_id", "provider", "event_type", "timestamp"],
+                name="secto_okta_event_ts",
+            ),
+        ]
+
+    class JSONAPIMeta:
+        resource_name = "secto-okta-system-logs"
+
+
 class SectoLogCursor(RowLevelSecurityProtectedModel):
     tenant = models.ForeignKey("api.Tenant", on_delete=models.CASCADE)
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -165,6 +218,7 @@ class SectoLogCursor(RowLevelSecurityProtectedModel):
     signin_cursor_at = models.DateTimeField(null=True, blank=True)
     audit_cursor_at = models.DateTimeField(null=True, blank=True)
     unified_audit_cursor_at = models.DateTimeField(null=True, blank=True)
+    okta_system_cursor_at = models.DateTimeField(null=True, blank=True)
 
     class Meta(RowLevelSecurityProtectedModel.Meta):
         db_table = "secto_log_cursors"

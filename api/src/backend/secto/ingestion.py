@@ -17,6 +17,7 @@ from .models import (
     M365AuditLog,
     M365SignInLog,
     M365UnifiedAuditLog,
+    OktaSystemLog,
     SectoLogCursor,
 )
 
@@ -32,9 +33,11 @@ O365_CONTENT_TYPES = (
     "Audit.General",
 )
 O365_SCOPE = "https://manage.office.com/.default"
+OKTA_SYSTEM_LOG_PATH = "/api/v1/logs"
 INITIAL_LOOKBACK = timedelta(hours=24)
 CURSOR_OVERLAP = timedelta(minutes=10)
-PAGE_SIZE = 200
+GRAPH_PAGE_SIZE = 200
+OKTA_PAGE_SIZE = 1000
 NON_PREMIUM_SIGNIN_ERROR = "Authentication_RequestFromNonPremiumTenantOrB2CTenant"
 EMPTY_RESULT = {
     "signin_events": 0,
@@ -42,6 +45,7 @@ EMPTY_RESULT = {
     "unified_audit_events": 0,
     "threats": 0,
 }
+EMPTY_OKTA_RESULT = {"system_events": 0}
 
 
 @dataclass(frozen=True)
@@ -50,6 +54,12 @@ class ProviderState:
     signin_start: datetime
     audit_start: datetime
     unified_audit_start: datetime
+
+
+@dataclass(frozen=True)
+class OktaProviderState:
+    secret: Mapping[str, str]
+    system_start: datetime
 
 
 def pull_m365_logs(
@@ -135,6 +145,38 @@ def pull_m365_logs(
     }
 
 
+def pull_okta_logs(
+    tenant_id: str,
+    provider_id: str,
+    now: datetime | None = None,
+) -> dict[str, int]:
+    now = now or datetime.now(timezone.utc)
+    state = _load_okta_provider_state(tenant_id, provider_id, now)
+    if state is None:
+        return EMPTY_OKTA_RESULT
+
+    records = _fetch_okta_system_logs(state.secret, state.system_start, now)
+    system_events = _store_logs(
+        tenant_id,
+        OktaSystemLog,
+        [
+            log
+            for record in records
+            if (log := _build_okta_system_log(tenant_id, provider_id, record))
+            is not None
+        ],
+    )
+
+    with rls_transaction(tenant_id):
+        SectoLogCursor.objects.update_or_create(
+            tenant_id=tenant_id,
+            provider_id=provider_id,
+            defaults={"okta_system_cursor_at": now},
+        )
+
+    return {"system_events": system_events}
+
+
 def _load_provider_state(
     tenant_id: str,
     provider_id: str,
@@ -166,6 +208,32 @@ def _load_provider_state(
         )
 
 
+def _load_okta_provider_state(
+    tenant_id: str,
+    provider_id: str,
+    now: datetime,
+) -> OktaProviderState | None:
+    with rls_transaction(tenant_id):
+        provider = Provider.objects.select_related("secret").get(
+            tenant_id=tenant_id,
+            id=provider_id,
+        )
+        if provider.provider != Provider.ProviderChoices.OKTA.value:
+            return None
+
+        cursor = SectoLogCursor.objects.filter(
+            tenant_id=tenant_id,
+            provider=provider,
+        ).first()
+        assert provider.secret
+        return OktaProviderState(
+            secret=provider.secret.secret,
+            system_start=_cursor_start(
+                cursor.okta_system_cursor_at if cursor else None, now
+            ),
+        )
+
+
 def _cursor_start(value: datetime | None, now: datetime) -> datetime:
     if value is None:
         return now - INITIAL_LOOKBACK
@@ -182,7 +250,7 @@ def _fetch_graph_records(
     token = _build_credential(secret).get_token(GRAPH_SCOPE).token
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
     params: dict[str, Any] = {
-        "$top": PAGE_SIZE,
+        "$top": GRAPH_PAGE_SIZE,
         "$filter": (
             f"{timestamp_field} gt {_format_graph_datetime(start_time)} "
             f"and {timestamp_field} le {_format_graph_datetime(end_time)}"
@@ -205,6 +273,37 @@ def _fetch_graph_records(
         body = response.json()
         records.extend(body.get("value", []))
         url = body.get("@odata.nextLink")
+        params = {}
+
+    return records
+
+
+def _fetch_okta_system_logs(
+    secret: Mapping[str, str],
+    start_time: datetime,
+    end_time: datetime,
+) -> list[Mapping[str, Any]]:
+    url = f"{secret['org_url'].rstrip('/')}{OKTA_SYSTEM_LOG_PATH}"
+    headers = {
+        "Authorization": f"SSWS {secret['api_token']}",
+        "Accept": "application/json",
+    }
+    params: dict[str, Any] = {
+        "since": _format_graph_datetime(start_time),
+        "until": _format_graph_datetime(end_time),
+        "sortOrder": "ASCENDING",
+        "limit": OKTA_PAGE_SIZE,
+    }
+    records = []
+
+    while url:
+        response = requests.get(url, headers=headers, params=params, timeout=60)
+        response.raise_for_status()
+        records.extend(
+            record for record in response.json() if isinstance(record, Mapping)
+        )
+        next_link = response.links.get("next", {})
+        url = next_link.get("url")
         params = {}
 
     return records
@@ -433,6 +532,46 @@ def _build_unified_audit_log(
         object_id=record.get("ObjectId") or "",
         raw_event=dict(record),
     )
+
+
+def _build_okta_system_log(
+    tenant_id: str,
+    provider_id: str,
+    record: Mapping[str, Any],
+) -> OktaSystemLog | None:
+    source_id = record.get("uuid")
+    timestamp = _parse_datetime(record.get("published"))
+    event_type = record.get("eventType")
+    if not source_id or timestamp is None or not event_type:
+        return None
+
+    actor = _mapping(record.get("actor"))
+    client = _mapping(record.get("client"))
+    user_agent = _mapping(client.get("userAgent"))
+
+    return OktaSystemLog(
+        tenant_id=tenant_id,
+        provider_id=provider_id,
+        source_id=source_id,
+        timestamp=timestamp,
+        event_type=event_type,
+        display_message=record.get("displayMessage") or "",
+        severity=record.get("severity") or "",
+        outcome=_mapping(record.get("outcome")),
+        actor_id=actor.get("id") or "",
+        actor_alternate_id=actor.get("alternateId") or "",
+        actor_display_name=actor.get("displayName") or "",
+        client_ip=_normalize_ip(client.get("ipAddress")),
+        user_agent=user_agent.get("rawUserAgent") or "",
+        targets=record.get("target") or [],
+        raw_event=dict(record),
+    )
+
+
+def _mapping(value: Any) -> Mapping[str, Any]:
+    if isinstance(value, Mapping):
+        return value
+    return {}
 
 
 def _parse_datetime(value: Any) -> datetime | None:

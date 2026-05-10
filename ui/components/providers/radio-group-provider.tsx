@@ -8,7 +8,7 @@ import { SearchInput } from "@/components/shadcn";
 import { cn } from "@/lib/utils";
 import { addProviderFormSchema } from "@/types";
 
-import { M365ProviderBadge } from "../icons/providers-badge";
+import { M365ProviderBadge, OktaProviderBadge } from "../icons/providers-badge";
 import { FormMessage } from "../ui/form";
 
 const PROVIDERS = [
@@ -16,6 +16,11 @@ const PROVIDERS = [
     value: "m365",
     label: "Microsoft 365",
     badge: M365ProviderBadge,
+  },
+  {
+    value: "okta",
+    label: "Okta",
+    badge: OktaProviderBadge,
   },
 ] as const;
 

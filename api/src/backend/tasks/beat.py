@@ -2,18 +2,28 @@ import json
 from datetime import datetime, timedelta, timezone
 
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
-from tasks.tasks import perform_scheduled_scan_task
+from tasks.tasks import perform_scheduled_scan_task, pull_okta_logs_task
 
 from api.db_utils import rls_transaction
 from api.exceptions import ConflictException
 from api.models import Provider, Scan, StateChoices
-from secto.schedules import ensure_m365_log_pull_schedule
+from secto.schedules import ensure_log_pull_schedule
 from tasks.jobs.attack_paths import db_utils as attack_paths_db_utils
 
 
 def schedule_provider_scan(provider_instance: Provider):
     tenant_id = str(provider_instance.tenant_id)
     provider_id = str(provider_instance.id)
+
+    if provider_instance.provider == Provider.ProviderChoices.OKTA.value:
+        ensure_log_pull_schedule(provider_instance)
+        return pull_okta_logs_task.apply_async(
+            kwargs={
+                "tenant_id": tenant_id,
+                "provider_id": provider_id,
+            },
+            countdown=5,
+        )
 
     schedule, _ = IntervalSchedule.objects.get_or_create(
         every=24,
@@ -63,7 +73,7 @@ def schedule_provider_scan(provider_instance: Provider):
     )
     scheduled_scan.scheduler_task_id = periodic_task_instance.id
     scheduled_scan.save()
-    ensure_m365_log_pull_schedule(provider_instance)
+    ensure_log_pull_schedule(provider_instance)
 
     return perform_scheduled_scan_task.apply_async(
         kwargs={

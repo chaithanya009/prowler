@@ -642,14 +642,14 @@ describe("loadProvidersAccountsViewData", () => {
       ["Status"],
     );
     expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(1, {
-      filters: { "filter[provider__in]": "m365" },
+      filters: { "filter[provider__in]": "m365,okta" },
       page: 1,
       pageSize: 10,
       query: "",
       sort: "",
     });
     expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(2, {
-      filters: { "filter[provider__in]": "m365" },
+      filters: { "filter[provider__in]": "m365,okta" },
       pageSize: 500,
     });
   });
@@ -737,12 +737,12 @@ describe("loadProvidersAccountsViewData", () => {
     expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        filters: { "filter[provider__in]": "m365" },
+        filters: { "filter[provider__in]": "m365,okta" },
       }),
     );
   });
 
-  it("keeps the Microsoft 365 provider filter even when another provider is requested", async () => {
+  it("keeps the account provider filter even when another provider is requested", async () => {
     // Given
     providersActionsMock.getProviders.mockResolvedValue(providersResponse);
     scansActionsMock.getScans.mockResolvedValue({ data: [] });
@@ -760,7 +760,7 @@ describe("loadProvidersAccountsViewData", () => {
     expect(providersActionsMock.getProviders).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        filters: { "filter[provider__in]": "m365" },
+        filters: { "filter[provider__in]": "m365,okta" },
       }),
     );
   });

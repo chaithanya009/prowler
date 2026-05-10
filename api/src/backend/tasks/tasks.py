@@ -77,8 +77,8 @@ from api.v1.serializers import ScanTaskSerializer
 from prowler.lib.check.compliance_models import Compliance
 from prowler.lib.outputs.compliance.generic.generic import GenericCompliance
 from prowler.lib.outputs.finding import Finding as FindingOutput
-from secto.ingestion import pull_m365_logs
-from secto.schedules import ensure_m365_log_pull_schedule_for_provider
+from secto.ingestion import pull_m365_logs, pull_okta_logs
+from secto.schedules import ensure_log_pull_schedule_for_provider
 
 
 logger = get_task_logger(__name__)
@@ -276,7 +276,7 @@ def perform_scan_task(
     Returns:
         dict: The result of the scan execution, typically including the status and results of the performed checks.
     """
-    ensure_m365_log_pull_schedule_for_provider(tenant_id, provider_id)
+    ensure_log_pull_schedule_for_provider(tenant_id, provider_id)
     result = perform_prowler_scan(
         tenant_id=tenant_id,
         scan_id=scan_id,
@@ -365,7 +365,7 @@ def perform_scheduled_scan_task(self, tenant_id: str, provider_id: str):
         scan_instance.task_id = task_id
         scan_instance.save()
 
-    ensure_m365_log_pull_schedule_for_provider(tenant_id, provider_id)
+    ensure_log_pull_schedule_for_provider(tenant_id, provider_id)
 
     try:
         result = perform_prowler_scan(
@@ -397,6 +397,12 @@ def perform_scheduled_scan_task(self, tenant_id: str, provider_id: str):
 @handle_provider_deletion
 def pull_m365_logs_task(tenant_id: str, provider_id: str):
     return pull_m365_logs(tenant_id=tenant_id, provider_id=provider_id)
+
+
+@shared_task(base=RLSTask, name="secto-okta-log-pull", queue="scans")
+@handle_provider_deletion
+def pull_okta_logs_task(tenant_id: str, provider_id: str):
+    return pull_okta_logs(tenant_id=tenant_id, provider_id=provider_id)
 
 
 @shared_task(name="scan-summary", queue="overview")
