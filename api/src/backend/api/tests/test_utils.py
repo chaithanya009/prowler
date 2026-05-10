@@ -6,11 +6,12 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from api.db_router import MainRouter
 from api.exceptions import InvitationTokenExpiredException
-from api.models import Integration, Invitation, Provider
+from api.models import Integration, Invitation, Provider, ProviderSecret
 from api.utils import (
     get_prowler_provider_kwargs,
     initialize_prowler_provider,
     merge_dicts,
+    okta_provider_connection_test,
     prowler_integration_connection_test,
     prowler_provider_connection_test,
     return_prowler_provider,
@@ -253,6 +254,40 @@ class TestProwlerProviderConnectionTest:
         mock_return_prowler_provider.return_value.test_connection.assert_called_once_with(
             image="alpine:3.18",
             raise_on_exception=False,
+        )
+
+    @pytest.mark.django_db
+    @patch("api.utils.requests.get")
+    def test_okta_provider_connection_test(self, mock_get, tenants_fixture):
+        provider = Provider.objects.create(
+            tenant_id=tenants_fixture[0].id,
+            provider=Provider.ProviderChoices.OKTA.value,
+            uid="acme.okta.com",
+            alias="okta",
+        )
+        ProviderSecret.objects.create(
+            tenant_id=tenants_fixture[0].id,
+            provider=provider,
+            secret_type=ProviderSecret.TypeChoices.STATIC,
+            name="okta",
+            secret={
+                "org_url": "https://acme.okta.com",
+                "api_token": "fake-api-token",
+            },
+        )
+        mock_get.return_value.raise_for_status.return_value = None
+
+        connection = okta_provider_connection_test(provider)
+
+        assert connection.is_connected is True
+        mock_get.assert_called_once_with(
+            "https://acme.okta.com/api/v1/logs",
+            headers={
+                "Authorization": "SSWS fake-api-token",
+                "Accept": "application/json",
+            },
+            params={"limit": 1},
+            timeout=60,
         )
 
 

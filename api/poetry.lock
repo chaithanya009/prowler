@@ -6752,10 +6752,9 @@ tzlocal = "5.3.1"
 uuid6 = "2024.7.10"
 
 [package.source]
-type = "git"
-url = "https://github.com/prowler-cloud/prowler.git"
-reference = "master"
-resolved_reference = "16798e293da365965120961e6539e3a9756564f9"
+type = "legacy"
+url = "https://secto-706009280183.d.codeartifact.us-east-1.amazonaws.com/pypi/prowler-ai/simple"
+reference = "codeartifact-prowler"
 
 [[package]]
 name = "psutil"
@@ -9424,4 +9423,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "a3ab982d11a87d951ff15694d2ca7fd51f1f51a451abb0baa067ccf6966367a8"
+content-hash = "4d79ed87f1c4bff0b443e931529d01fa77a5f4a85a9715fedaf3f5cf05b8378e"

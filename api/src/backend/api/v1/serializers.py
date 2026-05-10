@@ -1551,6 +1551,8 @@ class BaseWriteProviderSecretSerializer(BaseWriteSerializer):
                 serializer = KubernetesProviderSecret(data=secret)
             elif provider_type == Provider.ProviderChoices.M365.value:
                 serializer = M365ProviderSecret(data=secret)
+            elif provider_type == Provider.ProviderChoices.OKTA.value:
+                serializer = OktaProviderSecret(data=secret)
             elif provider_type == Provider.ProviderChoices.ORACLECLOUD.value:
                 serializer = OracleCloudProviderSecret(data=secret)
             elif provider_type == Provider.ProviderChoices.MONGODBATLAS.value:
@@ -1659,6 +1661,14 @@ class M365ProviderSecret(serializers.Serializer):
                     code="m365-certificate-content",
                 )
         return certificate_content
+
+    class Meta:
+        resource_name = "provider-secrets"
+
+
+class OktaProviderSecret(serializers.Serializer):
+    org_url = serializers.URLField()
+    api_token = serializers.CharField()
 
     class Meta:
         resource_name = "provider-secrets"

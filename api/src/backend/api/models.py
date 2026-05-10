@@ -296,6 +296,7 @@ class Provider(RowLevelSecurityProtectedModel):
         IMAGE = "image", _("Image")
         GOOGLEWORKSPACE = "googleworkspace", _("Google Workspace")
         VERCEL = "vercel", _("Vercel")
+        OKTA = "okta", _("Okta")
 
     @staticmethod
     def validate_aws_uid(value):
@@ -329,6 +330,19 @@ class Provider(RowLevelSecurityProtectedModel):
             raise ModelValidationError(
                 detail="M365 domain ID must be a valid domain.",
                 code="m365-uid",
+                pointer="/data/attributes/uid",
+            )
+
+    @staticmethod
+    def validate_okta_uid(value):
+        if not re.match(
+            r"^(?!https?://)(?!-)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+            r"(?:\.(?!-)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$",
+            value,
+        ):
+            raise ModelValidationError(
+                detail="Okta provider ID must be a valid Okta org domain.",
+                code="okta-uid",
                 pointer="/data/attributes/uid",
             )
 

@@ -13,7 +13,6 @@ export const addRoleFormSchema = z.object({
   manage_providers: z.boolean().default(false),
   manage_integrations: z.boolean().default(false),
   manage_scans: z.boolean().default(false),
-  manage_alerts: z.boolean().default(false),
   unlimited_visibility: z.boolean().default(false),
   groups: z.array(z.string()).optional(),
 });
@@ -26,7 +25,6 @@ export const editRoleFormSchema = z.object({
   manage_providers: z.boolean().default(false),
   manage_integrations: z.boolean().default(false),
   manage_scans: z.boolean().default(false),
-  manage_alerts: z.boolean().default(false),
   unlimited_visibility: z.boolean().default(false),
   groups: z.array(z.string()).optional(),
 });
@@ -162,6 +160,17 @@ export const addProviderFormSchema = z
         providerType: z.literal("vercel"),
         [ProviderCredentialFields.PROVIDER_ALIAS]: z.string(),
         providerUid: z.string().trim().min(1, "Team ID is required"),
+      }),
+      z.object({
+        providerType: z.literal("okta"),
+        [ProviderCredentialFields.PROVIDER_ALIAS]: z.string(),
+        providerUid: z
+          .string()
+          .trim()
+          .regex(
+            /^(?!https?:\/\/)(?!-)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.(?!-)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/,
+            "Okta org domain must be a valid domain without https://",
+          ),
       }),
     ]),
   );
@@ -391,7 +400,22 @@ export const addCredentialsFormSchema = (
                                             .trim()
                                             .min(1, "API Token is required"),
                                       }
-                                    : {}),
+                                    : providerType === "okta"
+                                      ? {
+                                          [ProviderCredentialFields.OKTA_ORG_URL]:
+                                            z
+                                              .string()
+                                              .trim()
+                                              .url(
+                                                "Org URL must be a valid URL",
+                                              ),
+                                          [ProviderCredentialFields.OKTA_API_TOKEN]:
+                                            z
+                                              .string()
+                                              .trim()
+                                              .min(1, "API Token is required"),
+                                        }
+                                      : {}),
     })
     .superRefine((data: Record<string, string | undefined>, ctx) => {
       if (providerType === "m365") {

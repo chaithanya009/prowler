@@ -292,13 +292,13 @@ jobs:
     - name: Verify API prowler dependency in api/pyproject.toml
       if: ${{ env.PATCH_VERSION != '0' && env.HAS_API_CHANGES == 'true' }}
       run: |
-        CURRENT_PROWLER_REF=$(grep 'prowler @ git+https://github.com/prowler-cloud/prowler.git@' api/pyproject.toml | sed -E 's/.*@([^"]+)".*/\1/' | tr -d '[:space:]')
-        BRANCH_NAME_TRIMMED=$(echo "$BRANCH_NAME" | tr -d '[:space:]')
-        if [ "$CURRENT_PROWLER_REF" != "$BRANCH_NAME_TRIMMED" ]; then
-          echo "ERROR: Prowler dependency mismatch in api/pyproject.toml (expected: '$BRANCH_NAME_TRIMMED', found: '$CURRENT_PROWLER_REF')"
+        CURRENT_PROWLER_VERSION=$(grep 'prowler (==' api/pyproject.toml | sed -E 's/.*==([^")]+).*/\1/' | tr -d '[:space:]')
+        PROWLER_VERSION_TRIMMED=$(echo "$PROWLER_VERSION" | tr -d '[:space:]')
+        if [ "$CURRENT_PROWLER_VERSION" != "$PROWLER_VERSION_TRIMMED" ]; then
+          echo "ERROR: Prowler dependency mismatch in api/pyproject.toml (expected: '$PROWLER_VERSION_TRIMMED', found: '$CURRENT_PROWLER_VERSION')"
           exit 1
         fi
-        echo "✓ api/pyproject.toml prowler dependency: $CURRENT_PROWLER_REF"
+        echo "✓ api/pyproject.toml prowler dependency: $CURRENT_PROWLER_VERSION"
 
     - name: Verify API version in api/src/backend/api/v1/views.py
       if: ${{ env.HAS_API_CHANGES == 'true' }}
@@ -325,16 +325,15 @@ jobs:
     - name: Update API prowler dependency for minor release
       if: ${{ env.PATCH_VERSION == '0' }}
       run: |
-        CURRENT_PROWLER_REF=$(grep 'prowler @ git+https://github.com/prowler-cloud/prowler.git@' api/pyproject.toml | sed -E 's/.*@([^"]+)".*/\1/' | tr -d '[:space:]')
-        BRANCH_NAME_TRIMMED=$(echo "$BRANCH_NAME" | tr -d '[:space:]')
+        CURRENT_PROWLER_VERSION=$(grep 'prowler (==' api/pyproject.toml | sed -E 's/.*==([^")]+).*/\1/' | tr -d '[:space:]')
+        PROWLER_VERSION_TRIMMED=$(echo "$PROWLER_VERSION" | tr -d '[:space:]')
 
-        # Minor release: update the dependency to use the release branch
-        echo "Updating prowler dependency from '$CURRENT_PROWLER_REF' to '$BRANCH_NAME_TRIMMED'"
-        sed -i "s|prowler @ git+https://github.com/prowler-cloud/prowler.git@[^\"]*\"|prowler @ git+https://github.com/prowler-cloud/prowler.git@$BRANCH_NAME_TRIMMED\"|" api/pyproject.toml
+        echo "Updating prowler dependency from '$CURRENT_PROWLER_VERSION' to '$PROWLER_VERSION_TRIMMED'"
+        sed -i "s|prowler (==[^\"]*)|prowler (==$PROWLER_VERSION_TRIMMED)|" api/pyproject.toml
+        sed -i "s|prowler = {version = \"==[^\"]*\"|prowler = {version = \"==$PROWLER_VERSION_TRIMMED\"|" api/pyproject.toml
 
-        # Verify the change was made
-        UPDATED_PROWLER_REF=$(grep 'prowler @ git+https://github.com/prowler-cloud/prowler.git@' api/pyproject.toml | sed -E 's/.*@([^"]+)".*/\1/' | tr -d '[:space:]')
-        if [ "$UPDATED_PROWLER_REF" != "$BRANCH_NAME_TRIMMED" ]; then
+        UPDATED_PROWLER_VERSION=$(grep 'prowler (==' api/pyproject.toml | sed -E 's/.*==([^")]+).*/\1/' | tr -d '[:space:]')
+        if [ "$UPDATED_PROWLER_VERSION" != "$PROWLER_VERSION_TRIMMED" ]; then
           echo "ERROR: Failed to update prowler dependency in api/pyproject.toml"
           exit 1
         fi
@@ -345,7 +344,7 @@ jobs:
         poetry lock
         cd ..
 
-        echo "✓ Prepared prowler dependency update to: $UPDATED_PROWLER_REF"
+        echo "✓ Prepared prowler dependency update to: $UPDATED_PROWLER_VERSION"
 
     - name: Create PR for API dependency update
       if: ${{ env.PATCH_VERSION == '0' }}

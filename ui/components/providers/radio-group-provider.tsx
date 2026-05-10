@@ -8,100 +8,19 @@ import { SearchInput } from "@/components/shadcn";
 import { cn } from "@/lib/utils";
 import { addProviderFormSchema } from "@/types";
 
-import {
-  AlibabaCloudProviderBadge,
-  AWSProviderBadge,
-  AzureProviderBadge,
-  CloudflareProviderBadge,
-  GCPProviderBadge,
-  GitHubProviderBadge,
-  GoogleWorkspaceProviderBadge,
-  IacProviderBadge,
-  ImageProviderBadge,
-  KS8ProviderBadge,
-  M365ProviderBadge,
-  MongoDBAtlasProviderBadge,
-  OpenStackProviderBadge,
-  OracleCloudProviderBadge,
-  VercelProviderBadge,
-} from "../icons/providers-badge";
+import { M365ProviderBadge, OktaProviderBadge } from "../icons/providers-badge";
 import { FormMessage } from "../ui/form";
 
 const PROVIDERS = [
-  {
-    value: "aws",
-    label: "Amazon Web Services",
-    badge: AWSProviderBadge,
-  },
-  {
-    value: "gcp",
-    label: "Google Cloud Platform",
-    badge: GCPProviderBadge,
-  },
-  {
-    value: "azure",
-    label: "Microsoft Azure",
-    badge: AzureProviderBadge,
-  },
   {
     value: "m365",
     label: "Microsoft 365",
     badge: M365ProviderBadge,
   },
   {
-    value: "mongodbatlas",
-    label: "MongoDB Atlas",
-    badge: MongoDBAtlasProviderBadge,
-  },
-  {
-    value: "kubernetes",
-    label: "Kubernetes",
-    badge: KS8ProviderBadge,
-  },
-  {
-    value: "github",
-    label: "GitHub",
-    badge: GitHubProviderBadge,
-  },
-  {
-    value: "googleworkspace",
-    label: "Google Workspace",
-    badge: GoogleWorkspaceProviderBadge,
-  },
-  {
-    value: "iac",
-    label: "Infrastructure as Code",
-    badge: IacProviderBadge,
-  },
-  {
-    value: "image",
-    label: "Container Registry",
-    badge: ImageProviderBadge,
-  },
-  {
-    value: "oraclecloud",
-    label: "Oracle Cloud Infrastructure",
-    badge: OracleCloudProviderBadge,
-  },
-  {
-    value: "alibabacloud",
-    label: "Alibaba Cloud",
-    badge: AlibabaCloudProviderBadge,
-  },
-  {
-    value: "cloudflare",
-    label: "Cloudflare",
-    badge: CloudflareProviderBadge,
-  },
-  {
-    value: "openstack",
-    label: "OpenStack",
-    badge: OpenStackProviderBadge,
-  },
-  {
-    value: "vercel",
-    label: "Vercel",
-    badge: VercelProviderBadge,
+    value: "okta",
+    label: "Okta",
+    badge: OktaProviderBadge,
   },
 ] as const;
 

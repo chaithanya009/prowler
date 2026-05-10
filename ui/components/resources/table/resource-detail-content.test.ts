@@ -26,4 +26,10 @@ describe("resource detail content", () => {
     expect(source).not.toContain("useEffect");
     expect(source).not.toContain("useEffect(");
   });
+
+  it("does not render resource events in the side panel", () => {
+    expect(source).not.toContain("EventsTimeline");
+    expect(source).not.toContain('value="events"');
+    expect(source).not.toContain(">Events<");
+  });
 });

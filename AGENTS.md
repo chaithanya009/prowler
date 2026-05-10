@@ -5,6 +5,7 @@
 - Start here for cross-project norms. Prowler is a monorepo with several components.
 - Each component has an `AGENTS.md` file with specific guidelines (e.g., `api/AGENTS.md`, `ui/AGENTS.md`).
 - Component docs override this file when guidance conflicts.
+- For fork-specific UI migration context, read [Migration Guide](docs/developer-guide/migration-guide.mdx). This project builds on top of Prowler, has already removed Lighthouse UI features, is removing upstream Prowler-facing links such as Prowler Hub, Support & Help, and Latest Updates, and replaces user-facing Prowler branding with Secto branding. Update the migration guide whenever a relevant fork migration decision or user-facing branding change is made.
 
 ## Available Skills
 
@@ -168,6 +169,13 @@ poetry run prek run --all-files
 Follow conventional-commit style: `<type>[scope]: <description>`
 
 **Types:** `feat`, `fix`, `docs`, `chore`, `perf`, `refactor`, `style`, `test`
+
+## Local Git Guardrails
+
+- This clone belongs to `chaithanya009/prowler`. `origin` fetch/pull/push must point to `https://github.com/chaithanya009/prowler.git`.
+- Keep `prowler-cloud/prowler` only as `upstream` for fetching upstream changes. Its push URL should stay disabled.
+- To sync upstream changes, fetch/pull from `upstream`, merge or rebase locally, then push the result to `origin`.
+- Do not push directly to `prowler-cloud/prowler`.
 
 Before creating a PR:
 1. Complete checklist in `.github/pull_request_template.md`

@@ -2,16 +2,12 @@ import { IntegrationType } from "../types/integrations";
 
 // Documentation URLs
 export const DOCS_URLS = {
-  FINDINGS_ANALYSIS:
-    "https://docs.prowler.com/user-guide/tutorials/prowler-app#step-8:-analyze-the-findings",
-  AWS_ORGANIZATIONS:
-    "https://docs.prowler.com/user-guide/tutorials/prowler-cloud-aws-organizations",
-  ALERTS: "https://docs.prowler.com/user-guide/tutorials/prowler-app", // TODO: Update this URL to the Alerts documentation
-  ATTACK_PATHS_CUSTOM_QUERIES:
-    "https://docs.prowler.com/user-guide/tutorials/prowler-app-attack-paths#writing-custom-opencypher-queries",
+  FINDINGS_ANALYSIS: "https://secto.io/docs",
+  AWS_ORGANIZATIONS: "https://secto.io/docs",
+  ATTACK_PATHS_CUSTOM_QUERIES: "https://secto.io/docs",
 } as const;
 
-// CloudFormation template URL for the ProwlerScan role.
+// CloudFormation template URL for the SectoScan role.
 // Also used (URL-encoded) as the templateURL param in cloudformationQuickLink
 // and cloudformationOrgQuickLink below — keep both in sync.
 export const PROWLER_CF_TEMPLATE_URL =
@@ -28,82 +24,82 @@ export const getProviderHelpText = (provider: string) => {
     case "aws":
       return {
         text: "Need help connecting your AWS account?",
-        link: "https://goto.prowler.com/provider-aws",
+        link: "https://secto.io/docs",
       };
     case "azure":
       return {
         text: "Need help connecting your Azure subscription?",
-        link: "https://goto.prowler.com/provider-azure",
+        link: "https://secto.io/docs",
       };
     case "m365":
       return {
         text: "Need help connecting your Microsoft 365 account?",
-        link: "https://goto.prowler.com/provider-m365",
+        link: "https://secto.io/docs",
       };
     case "gcp":
       return {
         text: "Need help connecting your GCP project?",
-        link: "https://goto.prowler.com/provider-gcp",
+        link: "https://secto.io/docs",
       };
     case "kubernetes":
       return {
         text: "Need help connecting your Kubernetes cluster?",
-        link: "https://goto.prowler.com/provider-k8s",
+        link: "https://secto.io/docs",
       };
     case "github":
       return {
         text: "Need help connecting your GitHub account?",
-        link: "https://goto.prowler.com/provider-github",
+        link: "https://secto.io/docs",
       };
     case "iac":
       return {
         text: "Need help scanning your Infrastructure as Code repository?",
-        link: "https://goto.prowler.com/provider-iac",
+        link: "https://secto.io/docs",
       };
     case "image":
       return {
         text: "Need help scanning your container registry?",
-        link: "https://goto.prowler.com/provider-image",
+        link: "https://secto.io/docs",
       };
     case "oraclecloud":
       return {
         text: "Need help connecting your Oracle Cloud account?",
-        link: "https://goto.prowler.com/provider-oraclecloud",
+        link: "https://secto.io/docs",
       };
     case "mongodbatlas":
       return {
         text: "Need help connecting your MongoDB Atlas organization?",
-        link: "https://goto.prowler.com/provider-mongodbatlas",
+        link: "https://secto.io/docs",
       };
     case "alibabacloud":
       return {
         text: "Need help connecting your Alibaba Cloud account?",
-        link: "https://goto.prowler.com/provider-alibabacloud",
+        link: "https://secto.io/docs",
       };
     case "cloudflare":
       return {
         text: "Need help connecting your Cloudflare account?",
-        link: "https://goto.prowler.com/provider-cloudflare",
+        link: "https://secto.io/docs",
       };
     case "openstack":
       return {
         text: "Need help connecting your OpenStack cloud?",
-        link: "https://goto.prowler.com/provider-openstack",
+        link: "https://secto.io/docs",
       };
     case "googleworkspace":
       return {
         text: "Need help connecting your Google Workspace account?",
-        link: "https://goto.prowler.com/provider-googleworkspace",
+        link: "https://secto.io/docs",
       };
     case "vercel":
       return {
         text: "Need help connecting your Vercel team?",
-        link: "https://goto.prowler.com/provider-vercel",
+        link: "https://secto.io/docs",
       };
     default:
       return {
         text: "How to setup a provider?",
-        link: "https://goto.prowler.com/provider-help",
+        link: "https://secto.io/docs",
       };
   }
 };
@@ -122,19 +118,15 @@ export const getAWSCredentialsTemplateLinks = (
 
   if (integrationType === undefined || integrationType === "aws_security_hub") {
     links = {
-      cloudformation:
-        "https://github.com/prowler-cloud/prowler/blob/master/permissions/templates/cloudformation/prowler-scan-role.yml",
-      terraform:
-        "https://github.com/prowler-cloud/prowler/tree/master/permissions/templates/terraform",
+      cloudformation: "https://secto.io/docs",
+      terraform: "https://secto.io/docs",
     };
   }
 
   if (integrationType === "amazon_s3") {
     links = {
-      cloudformation:
-        "https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-s3-integration/",
-      terraform:
-        "https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-s3-integration/#terraform",
+      cloudformation: "https://secto.io/docs",
+      terraform: "https://secto.io/docs",
     };
   }
 
@@ -152,10 +144,10 @@ export const getAWSCredentialsTemplateLinks = (
     }),
     cloudformationQuickLink:
       `${cfBaseUrl}?templateURL=${encodedTemplateUrl}` +
-      `&stackName=Prowler&param_ExternalId=${externalId}${s3Params}`,
+      `&stackName=Secto&param_ExternalId=${externalId}${s3Params}`,
     cloudformationOrgQuickLink:
       `${cfBaseUrl}?templateURL=${encodedTemplateUrl}` +
-      `&stackName=Prowler&param_ExternalId=${externalId}` +
+      `&stackName=Secto&param_ExternalId=${externalId}` +
       `&param_EnableOrganizations=true${s3Params}`,
   };
 };

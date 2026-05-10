@@ -3,10 +3,9 @@
 import { BreadcrumbItem, Breadcrumbs } from "@heroui/breadcrumbs";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 
-import { LighthouseIcon } from "@/components/icons/Icons";
 import { cn } from "@/lib/utils";
 
 export interface CustomBreadcrumbItem {
@@ -34,28 +33,22 @@ export function BreadcrumbNavigation({
   icon,
   customItems = [],
   className = "",
-  paramToPreserve = "scanId",
   showTitle = true,
 }: BreadcrumbNavigationProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const generateAutoBreadcrumbs = (): CustomBreadcrumbItem[] => {
     const pathIconMapping: Record<string, string | ReactNode> = {
       "/integrations": "lucide:puzzle",
-      "/alerts": "lucide:bell-ring",
       "/providers": "lucide:cloud",
       "/users": "lucide:users",
-      "/compliance": "lucide:shield-check",
       "/findings": "lucide:search",
       "/scans": "lucide:activity",
       "/roles": "lucide:key",
       "/resources": "lucide:database",
-      "/lighthouse": <LighthouseIcon />,
       "/manage-groups": "lucide:users-2",
       "/services": "lucide:server",
       "/workloads": "lucide:layers",
-      "/attack-paths": "lucide:git-branch",
     };
 
     const pathSegments = pathname
@@ -81,10 +74,6 @@ export function BreadcrumbNavigation({
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
       }
-      if (segment === "lighthouse") {
-        displayName = "Lighthouse AI";
-      }
-
       const segmentIcon = !isLast ? pathIconMapping[currentPath] : undefined;
 
       breadcrumbs.push({
@@ -97,14 +86,6 @@ export function BreadcrumbNavigation({
     });
 
     return breadcrumbs;
-  };
-
-  const buildNavigationUrl = (path: string) => {
-    const paramValue = searchParams.get(paramToPreserve);
-    if (path === "/compliance" && paramValue) {
-      return `/compliance?${paramToPreserve}=${paramValue}`;
-    }
-    return path;
   };
 
   const renderTitleWithIcon = (titleText: string, isLink: boolean = false) => (
@@ -153,7 +134,7 @@ export function BreadcrumbNavigation({
               renderTitleWithIcon(title)
             ) : breadcrumb.isClickable && breadcrumb.path ? (
               <Link
-                href={buildNavigationUrl(breadcrumb.path)}
+                href={breadcrumb.path}
                 className="flex cursor-pointer items-center gap-2"
               >
                 {breadcrumb.icon && typeof breadcrumb.icon === "string" ? (

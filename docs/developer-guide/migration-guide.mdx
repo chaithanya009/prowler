@@ -1,0 +1,26 @@
+# Migration Guide
+
+This repository builds on top of Prowler and keeps the parts of the upstream project that are still relevant to this fork.
+
+## UI Changes
+
+The UI has started moving away from upstream Prowler-specific product surfaces:
+
+- Lighthouse UI features have already been removed.
+- Prowler Hub has been removed from the side panel.
+- Support & Help has been removed from the side panel.
+- Latest Updates has been removed from the header.
+- User-facing Prowler logos and company-name references are being replaced with Secto branding.
+- The Compliance page has been removed from the UI.
+- Add-provider documentation links have been removed from the provider wizard.
+- Provider-facing UI now only exposes Microsoft 365 providers.
+- Finding remediation links that point to upstream Prowler properties, including Prowler Hub check URLs from upstream metadata, are hidden in the UI.
+- Attack Paths has been removed from the UI because the current backend implementation only generates Attack Paths data for AWS, while this fork exposes Microsoft 365.
+
+These changes keep the application focused on the local product experience instead of linking users back to upstream Prowler services, support channels, or release feeds.
+
+## Future Changes
+
+When adding or changing UI features, avoid introducing new upstream Prowler product links unless the link is required for the feature to work. Prefer local documentation, local support paths, or product-neutral labels when a user-facing route needs help text. Keep provider entry points limited to Microsoft 365 unless a new provider is explicitly brought back into the fork. During upstream merges, do not reintroduce Prowler Hub remediation links from check metadata into the user-facing finding UI, and do not re-expose AWS-only Attack Paths UI unless Microsoft 365 Attack Paths support is implemented.
+
+Update this guide whenever a relevant fork migration decision is made, especially when user-facing Prowler branding, upstream Prowler links, or removed upstream features change.

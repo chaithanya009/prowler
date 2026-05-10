@@ -63,7 +63,6 @@ export type PermissionKey =
   | "manage_scans"
   | "manage_integrations"
   | "manage_billing"
-  | "manage_alerts"
   | "unlimited_visibility";
 
 export type RolePermissionAttributes = Pick<
@@ -90,7 +89,6 @@ export interface RoleDetail {
     manage_scans: boolean;
     manage_integrations: boolean;
     manage_billing?: boolean;
-    manage_alerts?: boolean;
     unlimited_visibility: boolean;
     permission_state?: string;
     inserted_at?: string;

@@ -107,12 +107,10 @@ export const addRole = async (formData: FormData) => {
     },
   };
 
-  // Conditionally include Prowler Cloud permissions.
+  // Conditionally include manage_billing for cloud environment
   if (process.env.NEXT_PUBLIC_IS_CLOUD_ENV === "true") {
     payload.data.attributes.manage_billing =
       formData.get("manage_billing") === "true";
-    payload.data.attributes.manage_alerts =
-      formData.get("manage_alerts") === "true";
   }
 
   // Add provider groups relationships only if there are items
@@ -164,12 +162,10 @@ export const updateRole = async (formData: FormData, roleId: string) => {
     },
   };
 
-  // Conditionally include Prowler Cloud permissions.
+  // Conditionally include manage_billing for cloud environments
   if (process.env.NEXT_PUBLIC_IS_CLOUD_ENV === "true") {
     payload.data.attributes.manage_billing =
       formData.get("manage_billing") === "true";
-    payload.data.attributes.manage_alerts =
-      formData.get("manage_alerts") === "true";
   }
 
   // Add provider groups relationships only if there are items

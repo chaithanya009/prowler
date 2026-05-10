@@ -21,12 +21,9 @@ export function ResourceDetailSkeleton() {
         <InfoFieldSkeleton labelWidth="w-16" valueWidth="w-16" />
         <InfoFieldSkeleton labelWidth="w-10" valueWidth="w-18" />
 
-        {/* Row 3: Check ID, Finding ID, Finding UID */}
+        {/* Row 3: Check ID, Finding ID, Resource type */}
         <InfoFieldSkeleton labelWidth="w-14" valueWidth="w-36" />
         <InfoFieldSkeleton labelWidth="w-16" valueWidth="w-36" />
-        <InfoFieldSkeleton labelWidth="w-20" valueWidth="w-36" />
-
-        {/* Row 4: Resource type */}
         <InfoFieldSkeleton labelWidth="w-20" valueWidth="w-28" />
       </div>
 

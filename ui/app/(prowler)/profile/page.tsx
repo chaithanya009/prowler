@@ -5,11 +5,10 @@ import { getUserInfo } from "@/actions/users/users";
 import { auth } from "@/auth.config";
 import { SamlIntegrationCard } from "@/components/integrations/saml/saml-integration-card";
 import { ContentLayout } from "@/components/ui";
-import { ApiKeysCard, UserBasicInfoCard } from "@/components/users/profile";
+import { UserBasicInfoCard } from "@/components/users/profile";
 import { MembershipsCard } from "@/components/users/profile/memberships-card";
 import { RolesCard } from "@/components/users/profile/roles-card";
 import { SkeletonUserInfo } from "@/components/users/profile/skeleton-user-info";
-import { SearchParamsProps } from "@/types";
 import {
   MembershipDetailData,
   RoleDetail,
@@ -17,27 +16,17 @@ import {
   UserProfileResponse,
 } from "@/types/users";
 
-export default async function Profile({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParamsProps>;
-}) {
-  const resolvedSearchParams = await searchParams;
-
+export default async function Profile() {
   return (
     <ContentLayout title="User Profile" icon="lucide:users">
       <Suspense fallback={<SkeletonUserInfo />}>
-        <SSRDataUser searchParams={resolvedSearchParams} />
+        <SSRDataUser />
       </Suspense>
     </ContentLayout>
   );
 }
 
-const SSRDataUser = async ({
-  searchParams,
-}: {
-  searchParams: SearchParamsProps;
-}) => {
+const SSRDataUser = async () => {
   const session = await auth();
   const userProfile = (await getUserInfo()) as UserProfileResponse | undefined;
   if (!userProfile?.data) {
@@ -112,7 +101,6 @@ const SSRDataUser = async ({
             hasManageAccount={hasManageAccount}
             sessionTenantId={session?.tenantId}
           />
-          {hasManageAccount && <ApiKeysCard searchParams={searchParams} />}
         </div>
       </div>
     </div>

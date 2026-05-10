@@ -6,7 +6,7 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from tasks.beat import schedule_provider_scan
 
 from api.exceptions import ConflictException
-from api.models import Scan
+from api.models import Provider, Scan
 
 
 @pytest.mark.django_db
@@ -56,6 +56,36 @@ class TestScheduleProviderScan:
         assert "There is already a scheduled scan for this provider." in str(
             exc_info.value
         )
+
+    def test_schedule_okta_provider_starts_only_log_pull(self, tenants_fixture):
+        tenant = tenants_fixture[0]
+        provider_instance = Provider.objects.create(
+            tenant_id=tenant.id,
+            provider=Provider.ProviderChoices.OKTA,
+            uid="acme.okta.com",
+            alias="okta",
+        )
+
+        with patch("tasks.tasks.pull_okta_logs_task.apply_async") as mock_apply_async:
+            assert Scan.all_objects.count() == 0
+            result = schedule_provider_scan(provider_instance)
+
+            assert result is not None
+            assert Scan.all_objects.count() == 0
+            mock_apply_async.assert_called_once_with(
+                kwargs={
+                    "tenant_id": str(provider_instance.tenant_id),
+                    "provider_id": str(provider_instance.id),
+                },
+                countdown=5,
+            )
+
+            log_pull_task = PeriodicTask.objects.get(
+                name=f"secto-okta-log-pull-{provider_instance.id}"
+            )
+            assert log_pull_task.interval.every == 5
+            assert log_pull_task.interval.period == IntervalSchedule.MINUTES
+            assert log_pull_task.task == "secto-okta-log-pull"
 
     def test_remove_periodic_task(self, providers_fixture):
         provider_instance = providers_fixture[0]

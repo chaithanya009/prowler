@@ -1,7 +1,6 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 import { ComplianceScanInfo } from "@/components/compliance/compliance-header/compliance-scan-info";
 import { ClearFiltersButton } from "@/components/filters/clear-filters-button";
@@ -74,7 +73,6 @@ export const DataTableFilterCustom = ({
 }: DataTableFilterCustomProps) => {
   const { updateFilter } = useUrlFilters();
   const searchParams = useSearchParams();
-  const [openFilterKey, setOpenFilterKey] = useState<string | null>(null);
 
   const buildSearchConfig = (filter: FilterOption) => {
     const label = filter.labelCheckboxGroup.toLowerCase();
@@ -237,8 +235,6 @@ export const DataTableFilterCustom = ({
         return (
           <MultiSelect
             key={filter.key}
-            open={openFilterKey === filter.key}
-            onOpenChange={(open) => setOpenFilterKey(open ? filter.key : null)}
             values={selectedValues}
             onValuesChange={(values) => pushDropdownFilter(filter, values)}
           >

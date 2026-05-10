@@ -90,6 +90,9 @@ RUN mkdir -p /tmp/prowler_api_output
 
 COPY pyproject.toml ./
 
+ARG POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_USERNAME=aws
+ARG POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_PASSWORD
+
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir poetry==2.3.4
 
@@ -99,7 +102,7 @@ ENV PATH="/home/prowler/.local/bin:$PATH"
 RUN poetry install --no-root && \
     rm -rf ~/.cache/pip
 
-RUN poetry run python "$(poetry env info --path)/src/prowler/prowler/providers/m365/lib/powershell/m365_powershell.py"
+RUN poetry run python -m prowler.providers.m365.lib.powershell.m365_powershell
 
 COPY src/backend/ ./backend/
 COPY docker-entrypoint.sh ./docker-entrypoint.sh

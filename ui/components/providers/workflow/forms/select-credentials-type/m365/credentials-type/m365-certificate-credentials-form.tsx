@@ -60,7 +60,7 @@ export const M365CertificateCredentialsForm = ({
         certificate. For detailed instructions on how to generate and encode
         your certificate, please refer to the{" "}
         <Link
-          href="https://docs.prowler.com/user-guide/providers/microsoft365/authentication#generate-the-certificate"
+          href="https://secto.io/docs"
           target="_blank"
           rel="noopener noreferrer"
           className="text-button-tertiary p-0 text-sm"

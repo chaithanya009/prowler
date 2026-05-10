@@ -121,7 +121,6 @@ export const FILTER_KEY_LABELS: Record<FilterParam, string> = {
 interface BuildFindingsFilterChipsOptions {
   providers?: ProviderProps[];
   scans?: Array<{ [scanId: string]: ScanEntity }>;
-  includeMuted?: boolean;
 }
 
 /**
@@ -141,7 +140,7 @@ export function buildFindingsFilterChips(
 
   Object.entries(pendingFilters).forEach(([key, values]) => {
     if (!values || values.length === 0) return;
-    if (key === "filter[muted]" && !options.includeMuted) return;
+    if (key === "filter[muted]") return;
     const label = FILTER_KEY_LABELS[key as FilterParam] ?? key;
 
     const visibleValues = values;

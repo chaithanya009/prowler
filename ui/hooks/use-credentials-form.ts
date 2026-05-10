@@ -248,6 +248,14 @@ export const useCredentialsForm = ({
           ...baseDefaults,
           [ProviderCredentialFields.VERCEL_API_TOKEN]: "",
         };
+      case "okta":
+        return {
+          ...baseDefaults,
+          [ProviderCredentialFields.OKTA_ORG_URL]: providerUid
+            ? `https://${providerUid}`
+            : "",
+          [ProviderCredentialFields.OKTA_API_TOKEN]: "",
+        };
       default:
         return baseDefaults;
     }

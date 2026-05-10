@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { ProviderCredentialFields } from "@/lib/provider-credentials/provider-credential-fields";
 
-import { addCredentialsRoleFormSchema } from "./formSchemas";
+import {
+  addCredentialsFormSchema,
+  addCredentialsRoleFormSchema,
+  addProviderFormSchema,
+} from "./formSchemas";
 
 const BASE_AWS_ROLE_VALUES = {
   [ProviderCredentialFields.PROVIDER_ID]: "provider-123",
@@ -44,5 +48,42 @@ describe("addCredentialsRoleFormSchema", () => {
         path: [ProviderCredentialFields.AWS_SECRET_ACCESS_KEY],
       }),
     );
+  });
+});
+
+describe("addProviderFormSchema", () => {
+  it("accepts an Okta org domain without a scheme", () => {
+    const result = addProviderFormSchema.safeParse({
+      providerType: "okta",
+      providerAlias: "Okta",
+      providerUid: "acme.okta.com",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an Okta org domain with a scheme", () => {
+    const result = addProviderFormSchema.safeParse({
+      providerType: "okta",
+      providerAlias: "Okta",
+      providerUid: "https://acme.okta.com",
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("addCredentialsFormSchema", () => {
+  it("requires Okta org URL and API token", () => {
+    const schema = addCredentialsFormSchema("okta");
+
+    const result = schema.safeParse({
+      [ProviderCredentialFields.PROVIDER_ID]: "provider-1",
+      [ProviderCredentialFields.PROVIDER_TYPE]: "okta",
+      [ProviderCredentialFields.OKTA_ORG_URL]: "https://acme.okta.com",
+      [ProviderCredentialFields.OKTA_API_TOKEN]: "fake-api-token",
+    });
+
+    expect(result.success).toBe(true);
   });
 });

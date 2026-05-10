@@ -8,7 +8,7 @@ export interface ApplyFiltersButtonProps {
   hasChanges: boolean;
   /** Number of filter keys that have pending changes */
   changeCount: number;
-  /** Called when the user clicks "Apply Changes" */
+  /** Called when the user clicks "Apply Filters" */
   onApply: () => void;
   /** Called when the user clicks the discard (Undo) action */
   onDiscard: () => void;
@@ -17,12 +17,12 @@ export interface ApplyFiltersButtonProps {
 }
 
 /**
- * Displays an "Apply Changes" button with an optional discard action.
+ * Displays an "Apply Filters" button with an optional discard action.
  *
  * - Shows the count of pending changes when `hasChanges` is true.
  * - The apply button is disabled (and visually muted) when there are no changes.
  * - The Undo button only appears when there are pending changes.
- * - Uses Prowler's shadcn `Button` component.
+ * - Uses Secto's shadcn `Button` component.
  */
 export const ApplyFiltersButton = ({
   hasChanges,
@@ -32,12 +32,12 @@ export const ApplyFiltersButton = ({
   className,
 }: ApplyFiltersButtonProps) => {
   const label =
-    changeCount > 0 ? `Apply Changes (${changeCount})` : "Apply Changes";
+    changeCount > 0 ? `Apply Filters (${changeCount})` : "Apply Filters";
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Button
-        variant="default"
+        variant="link"
         size="sm"
         disabled={!hasChanges}
         onClick={onApply}

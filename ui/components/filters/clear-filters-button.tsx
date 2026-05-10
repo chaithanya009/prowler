@@ -14,8 +14,8 @@ export interface ClearFiltersButtonProps {
   ariaLabel?: string;
   /** Show the count of active filters */
   showCount?: boolean;
-  /** Button visual variant */
-  variant?: "link" | "default" | "outline";
+  /** Use link style (text only, no button background) */
+  variant?: "link" | "default";
   /**
    * Optional callback for batch mode. When provided, this is called INSTEAD
    * of pushing URL params directly. Useful for clearing pending filter state
@@ -32,10 +32,10 @@ export interface ClearFiltersButtonProps {
 }
 
 export const ClearFiltersButton = ({
-  text = "Clear All",
+  text = "Clear all filters",
   ariaLabel = "Reset",
   showCount = false,
-  variant = "outline",
+  variant = "link",
   onClear,
   pendingCount,
 }: ClearFiltersButtonProps) => {
@@ -80,7 +80,7 @@ export const ClearFiltersButton = ({
     return null;
   }
 
-  const displayText = showCount ? `Clear All (${displayCount})` : text;
+  const displayText = showCount ? `Clear Filters (${displayCount})` : text;
 
   return (
     <Button

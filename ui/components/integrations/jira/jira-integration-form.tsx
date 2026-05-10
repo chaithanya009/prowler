@@ -225,11 +225,7 @@ export const JiraIntegrationForm = ({
             <p className="text-default-500 flex items-center gap-2 text-sm">
               Need help configuring your Jira integration?
             </p>
-            <CustomLink
-              href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-jira-integration/"
-              target="_blank"
-              size="sm"
-            >
+            <CustomLink href="https://secto.io/docs" target="_blank" size="sm">
               Read the docs
             </CustomLink>
           </div>

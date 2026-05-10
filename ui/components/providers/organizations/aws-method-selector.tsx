@@ -3,7 +3,6 @@
 import { Ban, Box, Boxes } from "lucide-react";
 
 import { RadioCard } from "@/components/providers/radio-card";
-import { CloudFeatureBadgeLink } from "@/components/shared/cloud-feature-badge";
 
 interface AwsMethodSelectorProps {
   onSelectSingle: () => void;
@@ -19,7 +18,7 @@ export function AwsMethodSelector({
   return (
     <div className="flex flex-col gap-3">
       <p className="text-muted-foreground text-sm">
-        Select a method to add your accounts to Prowler.
+        Select a method to add your accounts to Secto.
       </p>
 
       <RadioCard
@@ -34,8 +33,29 @@ export function AwsMethodSelector({
         onClick={onSelectOrganizations}
         disabled={!isCloudEnv}
       >
-        {!isCloudEnv && <CloudFeatureBadgeLink />}
+        {!isCloudEnv && <CtaBadge />}
       </RadioCard>
     </div>
+  );
+}
+
+function CtaBadge() {
+  return (
+    <a
+      href="https://secto.io/pricing"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex h-[52px] shrink-0 items-center justify-center rounded-lg px-4 py-3 transition-opacity hover:opacity-90"
+      style={{
+        backgroundImage:
+          "linear-gradient(112deg, rgb(46, 229, 155) 3.5%, rgb(98, 223, 240) 98.8%)",
+      }}
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="text-primary-foreground text-sm leading-6 font-bold">
+          Available in Secto
+        </span>
+      </div>
+    </a>
   );
 }

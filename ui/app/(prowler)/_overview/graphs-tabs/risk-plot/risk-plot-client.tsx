@@ -69,7 +69,7 @@ export function RiskPlotClient({ data }: RiskPlotClientProps) {
           <span style={{ color: scoreColor, fontWeight: "bold" }}>
             {point.x}%
           </span>{" "}
-          Prowler ThreatScore
+          Secto ThreatScore
         </p>
         <div className="mt-2">
           <AlertPill value={point.y} />
@@ -89,7 +89,7 @@ export function RiskPlotClient({ data }: RiskPlotClientProps) {
                 Risk Plot
               </h3>
               <p className="text-text-neutral-tertiary mt-1 text-xs">
-                Prowler ThreatScore is severity-weighted, not quantity-based.
+                Secto ThreatScore is severity-weighted, not quantity-based.
                 Higher severity findings have greater impact on the score.
               </p>
             </div>
@@ -98,7 +98,7 @@ export function RiskPlotClient({ data }: RiskPlotClientProps) {
               data={data}
               xAxis={{ label: "Fail Findings", dataKey: "y" }}
               yAxis={{
-                label: "Prowler ThreatScore",
+                label: "Secto ThreatScore",
                 dataKey: "x",
                 domain: [0, 100],
               }}
@@ -125,7 +125,7 @@ export function RiskPlotClient({ data }: RiskPlotClientProps) {
                   {selectedPoint.name}
                 </h4>
                 <p className="text-text-neutral-tertiary text-xs">
-                  Prowler ThreatScore: {selectedPoint.x}% | Fail Findings:{" "}
+                  Secto ThreatScore: {selectedPoint.x}% | Fail Findings:{" "}
                   {selectedPoint.y}
                 </p>
               </div>

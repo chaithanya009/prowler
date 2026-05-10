@@ -526,11 +526,7 @@ export const SecurityHubIntegrationForm = ({
             <p className="text-default-500 flex items-center gap-2 text-sm">
               Need help configuring your AWS Security Hub integration?
             </p>
-            <CustomLink
-              href="https://docs.prowler.com/projects/prowler-open-source/en/latest/tutorials/prowler-app-security-hub-integration/"
-              target="_blank"
-              size="sm"
-            >
+            <CustomLink href="https://secto.io/docs" target="_blank" size="sm">
               Read the docs
             </CustomLink>
           </div>

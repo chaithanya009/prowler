@@ -415,6 +415,22 @@ from rest_framework_json_api import serializers
                 },
                 "required": ["api_token"],
             },
+            {
+                "type": "object",
+                "title": "Okta API Token",
+                "properties": {
+                    "org_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "Okta org URL used for System Log API access.",
+                    },
+                    "api_token": {
+                        "type": "string",
+                        "description": "Okta API token used with the SSWS authorization scheme.",
+                    },
+                },
+                "required": ["org_url", "api_token"],
+            },
         ]
     }
 )
