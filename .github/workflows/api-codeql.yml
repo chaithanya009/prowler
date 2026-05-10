@@ -29,6 +29,7 @@ permissions: {}
 jobs:
   api-analyze:
     name: CodeQL Security Analysis
+    if: github.repository != 'chaithanya009/secto-ai'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
