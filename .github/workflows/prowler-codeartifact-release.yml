@@ -1,0 +1,92 @@
+name: 'SDK: CodeArtifact Release'
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'dashboard/**'
+      - 'prowler/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/prowler-codeartifact-release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  CODEARTIFACT_DOMAIN: secto
+  CODEARTIFACT_DOMAIN_OWNER: '706009280183'
+  CODEARTIFACT_REPOSITORY: prowler-ai
+  CODEARTIFACT_POETRY_SOURCE: codeartifact-prowler
+  PYTHON_VERSION: '3.12'
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Python with Poetry
+        uses: ./.github/actions/setup-python-poetry
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          install-dependencies: 'false'
+          enable-cache: 'false'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2
+        with:
+          role-to-assume: arn:aws:iam::706009280183:role/githubActionsRole
+          role-session-name: prowler-codeartifact-release
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish prowler package
+        run: |
+          PACKAGE_VERSION=$(poetry version --short)
+          aws codeartifact describe-package-version \
+            --domain "$CODEARTIFACT_DOMAIN" \
+            --domain-owner "$CODEARTIFACT_DOMAIN_OWNER" \
+            --repository "$CODEARTIFACT_REPOSITORY" \
+            --format pypi \
+            --package prowler \
+            --package-version "$PACKAGE_VERSION" >/dev/null 2>&1 && {
+              echo "prowler $PACKAGE_VERSION already exists in CodeArtifact"
+              exit 0
+            }
+
+          REPOSITORY_URL=$(aws codeartifact get-repository-endpoint \
+            --domain "$CODEARTIFACT_DOMAIN" \
+            --domain-owner "$CODEARTIFACT_DOMAIN_OWNER" \
+            --repository "$CODEARTIFACT_REPOSITORY" \
+            --format pypi \
+            --query repositoryEndpoint \
+            --output text)
+          TOKEN=$(aws codeartifact get-authorization-token \
+            --domain "$CODEARTIFACT_DOMAIN" \
+            --domain-owner "$CODEARTIFACT_DOMAIN_OWNER" \
+            --query authorizationToken \
+            --output text)
+
+          poetry build
+          poetry config "repositories.$CODEARTIFACT_POETRY_SOURCE" "$REPOSITORY_URL"
+          poetry config "http-basic.$CODEARTIFACT_POETRY_SOURCE" aws "$TOKEN"
+          poetry publish --repository "$CODEARTIFACT_POETRY_SOURCE"

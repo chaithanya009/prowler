@@ -32,6 +32,9 @@ env:
   # Container registries
   PROWLERCLOUD_DOCKERHUB_REPOSITORY: prowlercloud
   PROWLERCLOUD_DOCKERHUB_IMAGE: prowler-api
+  AWS_REGION: us-east-1
+  CODEARTIFACT_DOMAIN: secto
+  CODEARTIFACT_DOMAIN_OWNER: '706009280183'
 
 permissions: {}
 
@@ -104,6 +107,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      id-token: write
       packages: write
 
     steps:
@@ -125,6 +129,10 @@ jobs:
             pypi.org:443
             registry-1.docker.io:443
             release-assets.githubusercontent.com:443
+            codeartifact.us-east-1.amazonaws.com:443
+            secto-706009280183.d.codeartifact.us-east-1.amazonaws.com:443
+            sts.us-east-1.amazonaws.com:443
+            token.actions.githubusercontent.com:443
             www.powershellgallery.com:443
 
       - name: Checkout repository
@@ -132,11 +140,23 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Pin prowler SDK to latest master commit
-        if: github.event_name == 'push'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2
+        with:
+          role-to-assume: arn:aws:iam::706009280183:role/githubActionsRole
+          role-session-name: prowler-codeartifact-install
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get CodeArtifact token
+        id: codeartifact-token
         run: |
-          LATEST_SHA=$(git ls-remote https://github.com/prowler-cloud/prowler.git refs/heads/master | cut -f1)
-          sed -i "s|prowler-cloud/prowler.git@master|prowler-cloud/prowler.git@${LATEST_SHA}|" api/pyproject.toml
+          TOKEN=$(aws codeartifact get-authorization-token \
+            --domain "$CODEARTIFACT_DOMAIN" \
+            --domain-owner "$CODEARTIFACT_DOMAIN_OWNER" \
+            --query authorizationToken \
+            --output text)
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Login to DockerHub
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
@@ -153,6 +173,9 @@ jobs:
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         with:
           context: ${{ env.WORKING_DIRECTORY }}
+          build-args: |
+            POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_USERNAME=aws
+            POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_PASSWORD=${{ steps.codeartifact-token.outputs.token }}
           push: true
           platforms: ${{ matrix.platform }}
           tags: |
