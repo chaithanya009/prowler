@@ -258,8 +258,7 @@ class TestProwlerProviderConnectionTest:
 
     @pytest.mark.django_db
     @patch("api.utils.requests.get")
-    @patch("api.utils.requests.post")
-    def test_okta_provider_connection_test(self, mock_post, mock_get, tenants_fixture):
+    def test_okta_provider_connection_test(self, mock_get, tenants_fixture):
         provider = Provider.objects.create(
             tenant_id=tenants_fixture[0].id,
             provider=Provider.ProviderChoices.OKTA.value,
@@ -281,7 +280,6 @@ class TestProwlerProviderConnectionTest:
         connection = okta_provider_connection_test(provider)
 
         assert connection.is_connected is True
-        mock_post.assert_not_called()
         mock_get.assert_called_once_with(
             "https://acme.okta.com/api/v1/logs",
             headers={

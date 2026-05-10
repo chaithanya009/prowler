@@ -39,13 +39,6 @@ CURSOR_OVERLAP = timedelta(minutes=10)
 GRAPH_PAGE_SIZE = 200
 OKTA_PAGE_SIZE = 1000
 NON_PREMIUM_SIGNIN_ERROR = "Authentication_RequestFromNonPremiumTenantOrB2CTenant"
-EMPTY_RESULT = {
-    "signin_events": 0,
-    "audit_events": 0,
-    "unified_audit_events": 0,
-    "threats": 0,
-}
-EMPTY_OKTA_RESULT = {"system_events": 0}
 
 
 @dataclass(frozen=True)
@@ -69,8 +62,6 @@ def pull_m365_logs(
 ) -> dict[str, int]:
     now = now or datetime.now(timezone.utc)
     state = _load_provider_state(tenant_id, provider_id, now)
-    if state is None:
-        return EMPTY_RESULT
 
     signin_records = _fetch_graph_records(
         state.secret,
@@ -152,8 +143,6 @@ def pull_okta_logs(
 ) -> dict[str, int]:
     now = now or datetime.now(timezone.utc)
     state = _load_okta_provider_state(tenant_id, provider_id, now)
-    if state is None:
-        return EMPTY_OKTA_RESULT
 
     records = _fetch_okta_system_logs(state.secret, state.system_start, now)
     system_events = _store_logs(
@@ -181,14 +170,13 @@ def _load_provider_state(
     tenant_id: str,
     provider_id: str,
     now: datetime,
-) -> ProviderState | None:
+) -> ProviderState:
     with rls_transaction(tenant_id):
         provider = Provider.objects.select_related("secret").get(
             tenant_id=tenant_id,
             id=provider_id,
         )
-        if provider.provider != Provider.ProviderChoices.M365.value:
-            return None
+        assert provider.provider == Provider.ProviderChoices.M365.value
 
         cursor = SectoLogCursor.objects.filter(
             tenant_id=tenant_id,
@@ -212,14 +200,13 @@ def _load_okta_provider_state(
     tenant_id: str,
     provider_id: str,
     now: datetime,
-) -> OktaProviderState | None:
+) -> OktaProviderState:
     with rls_transaction(tenant_id):
         provider = Provider.objects.select_related("secret").get(
             tenant_id=tenant_id,
             id=provider_id,
         )
-        if provider.provider != Provider.ProviderChoices.OKTA.value:
-            return None
+        assert provider.provider == Provider.ProviderChoices.OKTA.value
 
         cursor = SectoLogCursor.objects.filter(
             tenant_id=tenant_id,

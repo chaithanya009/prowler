@@ -82,4 +82,46 @@ describe("LaunchStep", () => {
       }),
     );
   });
+
+  it("launches Okta ingestion with the scheduled path", async () => {
+    const onClose = vi.fn();
+    const onFooterChange = vi.fn();
+    useProviderWizardStore.setState({
+      providerId: "provider-1",
+      providerType: "okta",
+      providerUid: "acme.okta.com",
+      mode: "add",
+    });
+
+    scheduleDailyMock.mockResolvedValue({ data: { id: "task-1" } });
+
+    render(
+      <LaunchStep
+        onBack={vi.fn()}
+        onClose={onClose}
+        onFooterChange={onFooterChange}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(onFooterChange).toHaveBeenCalled();
+    });
+
+    const footerConfig = onFooterChange.mock.calls.at(-1)?.[0];
+    await act(async () => {
+      footerConfig.onAction?.();
+    });
+
+    await waitFor(() => {
+      expect(scheduleDailyMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(scanOnDemandMock).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Ingestion Launched",
+      }),
+    );
+  });
 });

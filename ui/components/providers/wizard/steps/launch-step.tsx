@@ -47,6 +47,11 @@ export function LaunchStep({
     SCAN_SCHEDULE.DAILY,
   );
   const launchActionRef = useRef<() => void>(() => {});
+  const isOkta = providerType === "okta";
+  const launchingText = isOkta
+    ? "Launching ingestion..."
+    : "Launching scans...";
+  const launchLabel = isOkta ? "Launch ingestion" : "Launch scan";
 
   const handleLaunchScan = async () => {
     if (!providerId) {
@@ -57,7 +62,7 @@ export function LaunchStep({
     const formData = new FormData();
     formData.set("providerId", providerId);
     const result =
-      scheduleOption === SCAN_SCHEDULE.DAILY
+      isOkta || scheduleOption === SCAN_SCHEDULE.DAILY
         ? await scheduleDaily(formData)
         : await scanOnDemand(formData);
 
@@ -73,7 +78,7 @@ export function LaunchStep({
 
     setIsLaunching(false);
     onClose();
-    if (providerType === "okta") {
+    if (isOkta) {
       toast({
         title: "Ingestion Launched",
         description: "Okta log ingestion will run every 5 minutes.",
@@ -111,32 +116,28 @@ export function LaunchStep({
       backDisabled: isLaunching,
       onBack,
       showAction: true,
-      actionLabel:
-        providerType === "okta"
-          ? isLaunching
-            ? "Launching ingestion..."
-            : "Launch ingestion"
-          : isLaunching
-            ? "Launching scans..."
-            : "Launch scan",
+      actionLabel: isLaunching ? launchingText : launchLabel,
       actionDisabled: isLaunching || !providerId,
       actionType: WIZARD_FOOTER_ACTION_TYPE.BUTTON,
       onAction: () => {
         launchActionRef.current();
       },
     });
-  }, [isLaunching, onBack, onFooterChange, providerId, providerType]);
+  }, [
+    isLaunching,
+    launchLabel,
+    launchingText,
+    onBack,
+    onFooterChange,
+    providerId,
+  ]);
 
   if (isLaunching) {
     return (
       <div className="flex min-h-[320px] items-center justify-center">
         <div className="flex items-center gap-3 py-2">
           <Spinner className="size-6" />
-          <p className="text-sm font-medium">
-            {providerType === "okta"
-              ? "Launching ingestion..."
-              : "Launching scans..."}
-          </p>
+          <p className="text-sm font-medium">{launchingText}</p>
         </div>
       </div>
     );
@@ -150,7 +151,7 @@ export function LaunchStep({
       </div>
 
       <p className="text-text-neutral-secondary text-sm">
-        {providerType === "okta"
+        {isOkta
           ? "Launch recurring log ingestion for this provider."
           : "Choose how you want to launch scans for this provider."}
       </p>
@@ -161,7 +162,7 @@ export function LaunchStep({
         </p>
       )}
 
-      {providerType === "okta" ? (
+      {isOkta ? (
         <p className="text-text-neutral-secondary text-sm">
           Okta System Log ingestion will run every 5 minutes.
         </p>
