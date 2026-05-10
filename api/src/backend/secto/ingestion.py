@@ -1,11 +1,13 @@
 import base64
 import ipaddress
 import json
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping
 
 import requests
 from azure.identity import CertificateCredential, ClientSecretCredential
+from django.db import models
 
 from api.db_utils import rls_transaction
 from api.models import Provider
@@ -34,6 +36,20 @@ INITIAL_LOOKBACK = timedelta(hours=24)
 CURSOR_OVERLAP = timedelta(minutes=10)
 PAGE_SIZE = 200
 NON_PREMIUM_SIGNIN_ERROR = "Authentication_RequestFromNonPremiumTenantOrB2CTenant"
+EMPTY_RESULT = {
+    "signin_events": 0,
+    "audit_events": 0,
+    "unified_audit_events": 0,
+    "threats": 0,
+}
+
+
+@dataclass(frozen=True)
+class ProviderState:
+    secret: Mapping[str, str]
+    signin_start: datetime
+    audit_start: datetime
+    unified_audit_start: datetime
 
 
 def pull_m365_logs(
@@ -42,41 +58,57 @@ def pull_m365_logs(
     now: datetime | None = None,
 ) -> dict[str, int]:
     now = now or datetime.now(timezone.utc)
-    secret, cursors = _load_provider_state(tenant_id, provider_id, now)
-    if secret is None:
-        return {
-            "signin_events": 0,
-            "audit_events": 0,
-            "unified_audit_events": 0,
-            "threats": 0,
-        }
+    state = _load_provider_state(tenant_id, provider_id, now)
+    if state is None:
+        return EMPTY_RESULT
 
     signin_records = _fetch_graph_records(
-        secret,
+        state.secret,
         GRAPH_SIGNIN_PATH,
         "createdDateTime",
-        cursors["signin"],
+        state.signin_start,
         now,
     )
     audit_records = _fetch_graph_records(
-        secret,
+        state.secret,
         GRAPH_AUDIT_PATH,
         "activityDateTime",
-        cursors["audit"],
+        state.audit_start,
         now,
     )
     unified_audit_records = _fetch_unified_audit_records(
-        secret,
-        cursors["unified_audit"],
+        state.secret,
+        state.unified_audit_start,
         now,
     )
 
-    signin_events = _store_signin_records(tenant_id, provider_id, signin_records)
-    audit_events = _store_audit_records(tenant_id, provider_id, audit_records)
-    unified_audit_events = _store_unified_audit_records(
+    signin_events = _store_logs(
         tenant_id,
-        provider_id,
-        unified_audit_records,
+        M365SignInLog,
+        [
+            log
+            for record in signin_records
+            if (log := _build_signin_log(tenant_id, provider_id, record)) is not None
+        ],
+    )
+    audit_events = _store_logs(
+        tenant_id,
+        M365AuditLog,
+        [
+            log
+            for record in audit_records
+            if (log := _build_audit_log(tenant_id, provider_id, record)) is not None
+        ],
+    )
+    unified_audit_events = _store_logs(
+        tenant_id,
+        M365UnifiedAuditLog,
+        [
+            log
+            for record in unified_audit_records
+            if (log := _build_unified_audit_log(tenant_id, provider_id, record))
+            is not None
+        ],
     )
 
     with rls_transaction(tenant_id):
@@ -107,31 +139,31 @@ def _load_provider_state(
     tenant_id: str,
     provider_id: str,
     now: datetime,
-) -> tuple[dict[str, str] | None, dict[str, datetime]]:
+) -> ProviderState | None:
     with rls_transaction(tenant_id):
         provider = Provider.objects.select_related("secret").get(
             tenant_id=tenant_id,
             id=provider_id,
         )
         if provider.provider != Provider.ProviderChoices.M365.value:
-            return None, {}
+            return None
 
         cursor = SectoLogCursor.objects.filter(
             tenant_id=tenant_id,
             provider=provider,
         ).first()
-        return provider.secret.secret, _cursor_starts(cursor, now)
-
-
-def _cursor_starts(cursor: SectoLogCursor | None, now: datetime) -> dict[str, datetime]:
-    return {
-        "signin": _cursor_start(cursor.signin_cursor_at if cursor else None, now),
-        "audit": _cursor_start(cursor.audit_cursor_at if cursor else None, now),
-        "unified_audit": _cursor_start(
-            cursor.unified_audit_cursor_at if cursor else None,
-            now,
-        ),
-    }
+        assert provider.secret
+        return ProviderState(
+            secret=provider.secret.secret,
+            signin_start=_cursor_start(
+                cursor.signin_cursor_at if cursor else None, now
+            ),
+            audit_start=_cursor_start(cursor.audit_cursor_at if cursor else None, now),
+            unified_audit_start=_cursor_start(
+                cursor.unified_audit_cursor_at if cursor else None,
+                now,
+            ),
+        )
 
 
 def _cursor_start(value: datetime | None, now: datetime) -> datetime:
@@ -287,65 +319,16 @@ def _decode_o365_content(response: requests.Response) -> list[Mapping[str, Any]]
     return []
 
 
-def _store_signin_records(
+def _store_logs(
     tenant_id: str,
-    provider_id: str,
-    records: list[Mapping[str, Any]],
+    model: type[models.Model],
+    logs: list[models.Model],
 ) -> int:
-    logs = [
-        log
-        for record in records
-        if (log := _build_signin_log(tenant_id, provider_id, record)) is not None
-    ]
     if not logs:
         return 0
 
     with rls_transaction(tenant_id):
-        M365SignInLog.objects.bulk_create(
-            logs,
-            batch_size=500,
-            ignore_conflicts=True,
-        )
-    return len(logs)
-
-
-def _store_audit_records(
-    tenant_id: str,
-    provider_id: str,
-    records: list[Mapping[str, Any]],
-) -> int:
-    logs = [
-        log
-        for record in records
-        if (log := _build_audit_log(tenant_id, provider_id, record)) is not None
-    ]
-    if not logs:
-        return 0
-
-    with rls_transaction(tenant_id):
-        M365AuditLog.objects.bulk_create(
-            logs,
-            batch_size=500,
-            ignore_conflicts=True,
-        )
-    return len(logs)
-
-
-def _store_unified_audit_records(
-    tenant_id: str,
-    provider_id: str,
-    records: list[Mapping[str, Any]],
-) -> int:
-    logs = [
-        log
-        for record in records
-        if (log := _build_unified_audit_log(tenant_id, provider_id, record)) is not None
-    ]
-    if not logs:
-        return 0
-
-    with rls_transaction(tenant_id):
-        M365UnifiedAuditLog.objects.bulk_create(
+        model.objects.bulk_create(
             logs,
             batch_size=500,
             ignore_conflicts=True,
