@@ -3,14 +3,15 @@
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck disable=SC1091
 source "$repo_root/dev_scripts/local_env.sh"
 load_local_env
 
 cd "$repo_root/api"
 
 echo "Installing API dependencies..."
+"$repo_root/dev_scripts/use_local_prowler_package.sh"
 poetry install --no-root
-poetry run pip install -e "$repo_root"
 
 echo "Applying API migrations..."
 poetry run python src/backend/manage.py check_and_fix_socialaccount_sites_migration --database admin
