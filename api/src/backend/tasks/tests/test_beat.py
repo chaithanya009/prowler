@@ -57,7 +57,7 @@ class TestScheduleProviderScan:
             exc_info.value
         )
 
-    def test_schedule_okta_provider_starts_only_log_pull(self, tenants_fixture):
+    def test_schedule_okta_provider_starts_scan_and_log_pull(self, tenants_fixture):
         tenant = tenants_fixture[0]
         provider_instance = Provider.objects.create(
             tenant_id=tenant.id,
@@ -66,12 +66,14 @@ class TestScheduleProviderScan:
             alias="okta",
         )
 
-        with patch("tasks.tasks.pull_okta_logs_task.apply_async") as mock_apply_async:
+        with patch(
+            "tasks.tasks.perform_scheduled_scan_task.apply_async"
+        ) as mock_apply_async:
             assert Scan.all_objects.count() == 0
             result = schedule_provider_scan(provider_instance)
 
             assert result is not None
-            assert Scan.all_objects.count() == 0
+            assert Scan.all_objects.count() == 1
             mock_apply_async.assert_called_once_with(
                 kwargs={
                     "tenant_id": str(provider_instance.tenant_id),

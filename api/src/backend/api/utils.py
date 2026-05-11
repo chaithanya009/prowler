@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from prowler.providers.mongodbatlas.mongodbatlas_provider import (
         MongodbatlasProvider,
     )
+    from prowler.providers.okta.okta_provider import OktaProvider
     from prowler.providers.openstack.openstack_provider import OpenstackProvider
     from prowler.providers.oraclecloud.oraclecloud_provider import OraclecloudProvider
     from prowler.providers.vercel.vercel_provider import VercelProvider
@@ -94,6 +95,7 @@ def return_prowler_provider(
     | KubernetesProvider
     | M365Provider
     | MongodbatlasProvider
+    | OktaProvider
     | OpenstackProvider
     | OraclecloudProvider
     | VercelProvider
@@ -138,6 +140,10 @@ def return_prowler_provider(
             from prowler.providers.m365.m365_provider import M365Provider
 
             prowler_provider = M365Provider
+        case Provider.ProviderChoices.OKTA.value:
+            from prowler.providers.okta.okta_provider import OktaProvider
+
+            prowler_provider = OktaProvider
         case Provider.ProviderChoices.GITHUB.value:
             from prowler.providers.github.github_provider import GithubProvider
 
@@ -238,6 +244,11 @@ def get_prowler_provider_kwargs(
             **prowler_provider_kwargs,
             "filter_accounts": [provider.uid],
         }
+    elif provider.provider == Provider.ProviderChoices.OKTA.value:
+        prowler_provider_kwargs = {
+            **prowler_provider_kwargs,
+            "org_url": f"https://{provider.uid}",
+        }
     elif provider.provider == Provider.ProviderChoices.OPENSTACK.value:
         # clouds_yaml_content, clouds_yaml_cloud and provider_id are validated
         # in the provider itself, so it's not needed here.
@@ -291,6 +302,7 @@ def initialize_prowler_provider(
     | KubernetesProvider
     | M365Provider
     | MongodbatlasProvider
+    | OktaProvider
     | OpenstackProvider
     | OraclecloudProvider
     | VercelProvider

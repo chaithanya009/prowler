@@ -32,6 +32,7 @@ from prowler.providers.image.image_provider import ImageProvider
 from prowler.providers.kubernetes.kubernetes_provider import KubernetesProvider
 from prowler.providers.m365.m365_provider import M365Provider
 from prowler.providers.mongodbatlas.mongodbatlas_provider import MongodbatlasProvider
+from prowler.providers.okta.okta_provider import OktaProvider
 from prowler.providers.openstack.openstack_provider import OpenstackProvider
 from prowler.providers.oraclecloud.oraclecloud_provider import OraclecloudProvider
 from prowler.providers.vercel.vercel_provider import VercelProvider
@@ -122,6 +123,7 @@ class TestReturnProwlerProvider:
             (Provider.ProviderChoices.AZURE.value, AzureProvider),
             (Provider.ProviderChoices.KUBERNETES.value, KubernetesProvider),
             (Provider.ProviderChoices.M365.value, M365Provider),
+            (Provider.ProviderChoices.OKTA.value, OktaProvider),
             (Provider.ProviderChoices.GITHUB.value, GithubProvider),
             (Provider.ProviderChoices.MONGODBATLAS.value, MongodbatlasProvider),
             (Provider.ProviderChoices.ORACLECLOUD.value, OraclecloudProvider),
@@ -334,6 +336,10 @@ class TestGetProwlerProviderKwargs:
             (
                 Provider.ProviderChoices.CLOUDFLARE.value,
                 {"filter_accounts": ["provider_uid"]},
+            ),
+            (
+                Provider.ProviderChoices.OKTA.value,
+                {"org_url": "https://provider_uid"},
             ),
             (
                 Provider.ProviderChoices.OPENSTACK.value,

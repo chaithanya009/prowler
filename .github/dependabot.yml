@@ -4,19 +4,23 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-updates:
+updates: []
+
+# Dependabot updates are disabled for this fork. Dependency updates come from
+# merging upstream prowler when needed.
+
   # v5
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 25
-    target-branch: master
-    labels:
-      - "dependencies"
-      - "pip"
-    cooldown:
-      default-days: 7
+  # - package-ecosystem: "pip"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
+  #   open-pull-requests-limit: 25
+  #   target-branch: master
+  #   labels:
+  #     - "dependencies"
+  #     - "pip"
+  #   cooldown:
+  #     default-days: 7
 
   # Dependabot Updates are temporary disabled - 2025/03/19
   # - package-ecosystem: "pip"
@@ -30,17 +34,17 @@ updates:
   #     - "pip"
   #     - "component/api"
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 25
-    target-branch: master
-    labels:
-      - "dependencies"
-      - "github_actions"
-    cooldown:
-      default-days: 7
+  # - package-ecosystem: "github-actions"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
+  #   open-pull-requests-limit: 25
+  #   target-branch: master
+  #   labels:
+  #     - "dependencies"
+  #     - "github_actions"
+  #   cooldown:
+  #     default-days: 7
 
   # Dependabot Updates are temporary disabled - 2025/03/19
   # - package-ecosystem: "npm"
@@ -54,29 +58,29 @@ updates:
   #     - "npm"
   #     - "component/ui"
 
-  - package-ecosystem: "docker"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 25
-    target-branch: master
-    labels:
-      - "dependencies"
-      - "docker"
-    cooldown:
-      default-days: 7
+  # - package-ecosystem: "docker"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
+  #   open-pull-requests-limit: 25
+  #   target-branch: master
+  #   labels:
+  #     - "dependencies"
+  #     - "docker"
+  #   cooldown:
+  #     default-days: 7
 
-  - package-ecosystem: "pre-commit"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 25
-    target-branch: master
-    labels:
-      - "dependencies"
-      - "pre-commit"
-    cooldown:
-      default-days: 7
+  # - package-ecosystem: "pre-commit"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
+  #   open-pull-requests-limit: 25
+  #   target-branch: master
+  #   labels:
+  #     - "dependencies"
+  #     - "pre-commit"
+  #   cooldown:
+  #     default-days: 7
 
   # Dependabot Updates are temporary disabled - 2025/04/15
   # v4.6

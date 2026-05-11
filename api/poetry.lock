@@ -6671,7 +6671,7 @@ optional = false
 python-versions = ">=3.10,<3.13"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 alibabacloud_actiontrail20200706 = "2.4.1"
@@ -6752,9 +6752,8 @@ tzlocal = "5.3.1"
 uuid6 = "2024.7.10"
 
 [package.source]
-type = "legacy"
-url = "https://secto-706009280183.d.codeartifact.us-east-1.amazonaws.com/pypi/prowler-ai/simple"
-reference = "codeartifact-prowler"
+type = "directory"
+url = ".."
 
 [[package]]
 name = "psutil"
@@ -9423,4 +9422,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "4d79ed87f1c4bff0b443e931529d01fa77a5f4a85a9715fedaf3f5cf05b8378e"
+content-hash = "ac454fd257d3001a52ba800cfb2e16733acb43e572c2084f6b49f3d0d26928ad"

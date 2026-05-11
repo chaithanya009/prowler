@@ -171,3 +171,4 @@ GEMINI.md
 # Claude Code
 .claude/*
 .task-steering/*
+codex-scripts/

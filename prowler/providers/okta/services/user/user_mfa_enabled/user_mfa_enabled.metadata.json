@@ -1,0 +1,36 @@
+{
+  "Provider": "okta",
+  "CheckID": "user_mfa_enabled",
+  "CheckTitle": "Active Okta users have MFA enabled",
+  "CheckType": [],
+  "ServiceName": "user",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaUser",
+  "ResourceGroup": "IAM",
+  "Description": "Ensure every active Okta user has at least one active MFA factor enrolled.",
+  "Risk": "Okta users without MFA are more exposed to credential theft, phishing, and password reuse attacks.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/resources/users"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "Require MFA in Okta authenticator enrollment policies and ensure active users enroll an active MFA factor.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Require MFA for active Okta users and follow up with users that have no active MFA factor enrolled.",
+      "Url": "https://hub.prowler.com/check/user_mfa_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": ""
+}

@@ -489,6 +489,27 @@ class TestSectoScheduling:
             interval__period=IntervalSchedule.MINUTES,
         ).exists()
 
+    def test_daily_okta_scan_creates_scan_and_log_pull_schedule(self, tenants_fixture):
+        tenant = tenants_fixture[0]
+        provider = Provider.objects.create(
+            tenant=tenant,
+            provider=Provider.ProviderChoices.OKTA,
+            uid="acme.okta.com",
+            alias="okta",
+        )
+
+        with patch("tasks.tasks.perform_scheduled_scan_task.apply_async") as scan_task:
+            schedule_provider_scan(provider)
+
+        scan_task.assert_called_once()
+        assert Scan.objects.filter(provider=provider).exists()
+        assert PeriodicTask.objects.filter(
+            name=f"secto-okta-log-pull-{provider.id}",
+            task="secto-okta-log-pull",
+            interval__every=5,
+            interval__period=IntervalSchedule.MINUTES,
+        ).exists()
+
     def test_manual_m365_scan_creates_log_pull_schedule(
         self, tenants_fixture, providers_fixture
     ):
@@ -514,6 +535,38 @@ class TestSectoScheduling:
         assert PeriodicTask.objects.filter(
             name=f"secto-m365-log-pull-{provider.id}",
             task="secto-m365-log-pull",
+            interval__every=5,
+            interval__period=IntervalSchedule.MINUTES,
+        ).exists()
+
+    def test_manual_okta_scan_creates_log_pull_schedule(self, tenants_fixture):
+        tenant = tenants_fixture[0]
+        provider = Provider.objects.create(
+            tenant=tenant,
+            provider=Provider.ProviderChoices.OKTA,
+            uid="acme.okta.com",
+            alias="okta",
+        )
+        scan = Scan.objects.create(
+            tenant_id=tenant.id,
+            provider=provider,
+            trigger=Scan.TriggerChoices.MANUAL,
+            state=StateChoices.AVAILABLE,
+        )
+
+        with (
+            patch("tasks.tasks.perform_prowler_scan", return_value={"status": "ok"}),
+            patch("tasks.tasks._perform_scan_complete_tasks"),
+        ):
+            perform_scan_task.run(
+                tenant_id=str(tenant.id),
+                provider_id=str(provider.id),
+                scan_id=str(scan.id),
+            )
+
+        assert PeriodicTask.objects.filter(
+            name=f"secto-okta-log-pull-{provider.id}",
+            task="secto-okta-log-pull",
             interval__every=5,
             interval__period=IntervalSchedule.MINUTES,
         ).exists()

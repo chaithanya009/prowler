@@ -1283,6 +1283,28 @@ class CheckReportVercel(Check_Report):
         return "global"
 
 
+@dataclass
+class CheckReportOkta(Check_Report):
+    """Contains the Okta Check's finding information."""
+
+    resource_name: str
+    resource_id: str
+    location: str
+
+    def __init__(
+        self,
+        metadata: Dict,
+        resource: Any,
+        resource_name: str = None,
+        resource_id: str = None,
+        location: str = "global",
+    ) -> None:
+        super().__init__(metadata, resource)
+        self.resource_name = resource_name or getattr(resource, "login", "")
+        self.resource_id = resource_id or getattr(resource, "id", "")
+        self.location = location
+
+
 # Testing Pending
 def load_check_metadata(metadata_file: str) -> CheckMetadata:
     """
