@@ -51,7 +51,8 @@ class ProviderState:
 
 @dataclass(frozen=True)
 class OktaProviderState:
-    secret: Mapping[str, str]
+    api_token: str
+    org_url: str
     system_start: datetime
 
 
@@ -144,7 +145,12 @@ def pull_okta_logs(
     now = now or datetime.now(timezone.utc)
     state = _load_okta_provider_state(tenant_id, provider_id, now)
 
-    records = _fetch_okta_system_logs(state.secret, state.system_start, now)
+    records = _fetch_okta_system_logs(
+        state.api_token,
+        state.org_url,
+        state.system_start,
+        now,
+    )
     system_events = _store_logs(
         tenant_id,
         OktaSystemLog,
@@ -214,7 +220,8 @@ def _load_okta_provider_state(
         ).first()
         assert provider.secret
         return OktaProviderState(
-            secret=provider.secret.secret,
+            api_token=provider.secret.secret["api_token"],
+            org_url=f"https://{provider.uid}",
             system_start=_cursor_start(
                 cursor.okta_system_cursor_at if cursor else None, now
             ),
@@ -266,13 +273,14 @@ def _fetch_graph_records(
 
 
 def _fetch_okta_system_logs(
-    secret: Mapping[str, str],
+    api_token: str,
+    org_url: str,
     start_time: datetime,
     end_time: datetime,
 ) -> list[Mapping[str, Any]]:
-    url = f"{secret['org_url'].rstrip('/')}{OKTA_SYSTEM_LOG_PATH}"
+    url = f"{org_url}{OKTA_SYSTEM_LOG_PATH}"
     headers = {
-        "Authorization": f"SSWS {secret['api_token']}",
+        "Authorization": f"SSWS {api_token}",
         "Accept": "application/json",
     }
     params: dict[str, Any] = {

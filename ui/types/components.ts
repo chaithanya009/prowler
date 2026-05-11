@@ -388,7 +388,6 @@ export type VercelCredentials = {
 };
 
 export type OktaCredentials = {
-  [ProviderCredentialFields.OKTA_ORG_URL]: string;
   [ProviderCredentialFields.OKTA_API_TOKEN]: string;
   [ProviderCredentialFields.PROVIDER_ID]: string;
 };

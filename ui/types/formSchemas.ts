@@ -402,13 +402,6 @@ export const addCredentialsFormSchema = (
                                       }
                                     : providerType === "okta"
                                       ? {
-                                          [ProviderCredentialFields.OKTA_ORG_URL]:
-                                            z
-                                              .string()
-                                              .trim()
-                                              .url(
-                                                "Org URL must be a valid URL",
-                                              ),
                                           [ProviderCredentialFields.OKTA_API_TOKEN]:
                                             z
                                               .string()

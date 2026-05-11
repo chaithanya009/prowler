@@ -68,12 +68,6 @@ runs:
         echo "Updated resolved_reference:"
         grep -A2 -B2 "resolved_reference" poetry.lock
 
-    - name: Use local Prowler package for Secto API checks
-      if: github.repository == 'chaithanya009/secto-ai' && inputs.working-directory == './api'
-      shell: bash
-      working-directory: ${{ github.workspace }}
-      run: ./dev_scripts/use_local_prowler_package.sh
-
     - name: Update poetry.lock (prowler repo only)
       if: github.repository == 'prowler-cloud/prowler' && inputs.update-lock == 'true'
       shell: bash

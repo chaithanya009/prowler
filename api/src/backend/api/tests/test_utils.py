@@ -272,10 +272,7 @@ class TestProwlerProviderConnectionTest:
             provider=provider,
             secret_type=ProviderSecret.TypeChoices.STATIC,
             name="okta",
-            secret={
-                "org_url": "https://acme.okta.com",
-                "api_token": "fake-api-token",
-            },
+            secret={"api_token": "fake-api-token"},
         )
         mock_get.return_value.raise_for_status.return_value = None
 

@@ -93,7 +93,6 @@ export const ProviderCredentialFields = {
   VERCEL_API_TOKEN: "api_token",
 
   // Okta fields
-  OKTA_ORG_URL: "org_url",
   OKTA_API_TOKEN: "api_token",
 } as const;
 
@@ -154,7 +153,7 @@ export const ErrorPointers = {
     "/data/attributes/secret/credentials_content",
   GOOGLEWORKSPACE_DELEGATED_USER: "/data/attributes/secret/delegated_user",
   VERCEL_API_TOKEN: "/data/attributes/secret/api_token",
-  OKTA_ORG_URL: "/data/attributes/secret/org_url",
+  OKTA_API_TOKEN: "/data/attributes/secret/api_token",
 } as const;
 
 export type ErrorPointer = (typeof ErrorPointers)[keyof typeof ErrorPointers];

@@ -92,6 +92,7 @@ COPY pyproject.toml ./
 
 ARG POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_USERNAME=aws
 ARG POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_PASSWORD
+ARG PROWLER_VERSION=5.26.0
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir poetry==2.3.4
@@ -99,7 +100,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 ENV PATH="/home/prowler/.local/bin:$PATH"
 
 # Add `--no-root` to avoid installing the current project as a package
-RUN poetry install --no-root && \
+RUN sed -i "s#\"prowler @ ../\"#\"prowler (==$PROWLER_VERSION)\"#" pyproject.toml && \
+    sed -i "s#prowler = {path = \"..\", develop = true}#prowler = {version = \"==$PROWLER_VERSION\", source = \"codeartifact-prowler\"}#" pyproject.toml && \
+    poetry lock && \
+    poetry install --no-root && \
     rm -rf ~/.cache/pip
 
 RUN poetry run python -m prowler.providers.m365.lib.powershell.m365_powershell

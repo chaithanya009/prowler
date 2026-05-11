@@ -1667,7 +1667,6 @@ class M365ProviderSecret(serializers.Serializer):
 
 
 class OktaProviderSecret(serializers.Serializer):
-    org_url = serializers.URLField()
     api_token = serializers.CharField()
 
     class Meta:

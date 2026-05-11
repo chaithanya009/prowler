@@ -74,13 +74,12 @@ describe("addProviderFormSchema", () => {
 });
 
 describe("addCredentialsFormSchema", () => {
-  it("requires Okta org URL and API token", () => {
+  it("requires Okta API token", () => {
     const schema = addCredentialsFormSchema("okta");
 
     const result = schema.safeParse({
       [ProviderCredentialFields.PROVIDER_ID]: "provider-1",
       [ProviderCredentialFields.PROVIDER_TYPE]: "okta",
-      [ProviderCredentialFields.OKTA_ORG_URL]: "https://acme.okta.com",
       [ProviderCredentialFields.OKTA_API_TOKEN]: "fake-api-token",
     });
 

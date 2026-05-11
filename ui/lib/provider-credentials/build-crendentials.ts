@@ -261,17 +261,12 @@ export const buildVercelSecret = (formData: FormData) => {
 };
 
 export const buildOktaSecret = (formData: FormData) => {
-  const orgUrl = getFormValue(
-    formData,
-    ProviderCredentialFields.OKTA_ORG_URL,
-  ) as string;
   const apiToken = getFormValue(
     formData,
     ProviderCredentialFields.OKTA_API_TOKEN,
   ) as string;
 
   return filterEmptyValues({
-    [ProviderCredentialFields.OKTA_ORG_URL]: orgUrl?.trim(),
     [ProviderCredentialFields.OKTA_API_TOKEN]: apiToken?.trim(),
   });
 };

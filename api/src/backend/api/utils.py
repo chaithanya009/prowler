@@ -393,15 +393,15 @@ def prowler_provider_connection_test(provider: Provider) -> Connection:
 
 def okta_provider_connection_test(provider: Provider) -> Connection:
     try:
-        secret = provider.secret.secret
+        api_token = provider.secret.secret["api_token"]
     except Provider.secret.RelatedObjectDoesNotExist as secret_error:
         return Connection(is_connected=False, error=secret_error)
 
     try:
         response = requests.get(
-            f"{secret['org_url'].rstrip('/')}/api/v1/logs",
+            f"https://{provider.uid}/api/v1/logs",
             headers={
-                "Authorization": f"SSWS {secret['api_token']}",
+                "Authorization": f"SSWS {api_token}",
                 "Accept": "application/json",
             },
             params={"limit": 1},

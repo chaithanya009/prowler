@@ -158,6 +158,11 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
+      - name: Read Prowler package version
+        id: prowler-version
+        run: |
+          python -c 'import tomllib; print("version=" + tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])' >> "$GITHUB_OUTPUT"
+
       - name: Login to DockerHub
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
@@ -176,6 +181,7 @@ jobs:
           build-args: |
             POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_USERNAME=aws
             POETRY_HTTP_BASIC_CODEARTIFACT_PROWLER_PASSWORD=${{ steps.codeartifact-token.outputs.token }}
+            PROWLER_VERSION=${{ steps.prowler-version.outputs.version }}
           push: true
           platforms: ${{ matrix.platform }}
           tags: |

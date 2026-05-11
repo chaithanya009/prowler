@@ -289,17 +289,6 @@ jobs:
         fi
         echo "✓ api/pyproject.toml version: $CURRENT_API_VERSION"
 
-    - name: Verify API prowler dependency in api/pyproject.toml
-      if: ${{ env.PATCH_VERSION != '0' && env.HAS_API_CHANGES == 'true' }}
-      run: |
-        CURRENT_PROWLER_VERSION=$(grep 'prowler (==' api/pyproject.toml | sed -E 's/.*==([^")]+).*/\1/' | tr -d '[:space:]')
-        PROWLER_VERSION_TRIMMED=$(echo "$PROWLER_VERSION" | tr -d '[:space:]')
-        if [ "$CURRENT_PROWLER_VERSION" != "$PROWLER_VERSION_TRIMMED" ]; then
-          echo "ERROR: Prowler dependency mismatch in api/pyproject.toml (expected: '$PROWLER_VERSION_TRIMMED', found: '$CURRENT_PROWLER_VERSION')"
-          exit 1
-        fi
-        echo "✓ api/pyproject.toml prowler dependency: $CURRENT_PROWLER_VERSION"
-
     - name: Verify API version in api/src/backend/api/v1/views.py
       if: ${{ env.HAS_API_CHANGES == 'true' }}
       run: |
@@ -321,61 +310,6 @@ jobs:
           exit 1
         fi
         echo "✓ api/src/backend/api/specs/v1.yaml version: $CURRENT_API_VERSION"
-
-    - name: Update API prowler dependency for minor release
-      if: ${{ env.PATCH_VERSION == '0' }}
-      run: |
-        CURRENT_PROWLER_VERSION=$(grep 'prowler (==' api/pyproject.toml | sed -E 's/.*==([^")]+).*/\1/' | tr -d '[:space:]')
-        PROWLER_VERSION_TRIMMED=$(echo "$PROWLER_VERSION" | tr -d '[:space:]')
-
-        echo "Updating prowler dependency from '$CURRENT_PROWLER_VERSION' to '$PROWLER_VERSION_TRIMMED'"
-        sed -i "s|prowler (==[^\"]*)|prowler (==$PROWLER_VERSION_TRIMMED)|" api/pyproject.toml
-        sed -i "s|prowler = {version = \"==[^\"]*\"|prowler = {version = \"==$PROWLER_VERSION_TRIMMED\"|" api/pyproject.toml
-
-        UPDATED_PROWLER_VERSION=$(grep 'prowler (==' api/pyproject.toml | sed -E 's/.*==([^")]+).*/\1/' | tr -d '[:space:]')
-        if [ "$UPDATED_PROWLER_VERSION" != "$PROWLER_VERSION_TRIMMED" ]; then
-          echo "ERROR: Failed to update prowler dependency in api/pyproject.toml"
-          exit 1
-        fi
-
-        # Update poetry lock file
-        echo "Updating poetry.lock file..."
-        cd api
-        poetry lock
-        cd ..
-
-        echo "✓ Prepared prowler dependency update to: $UPDATED_PROWLER_VERSION"
-
-    - name: Create PR for API dependency update
-      if: ${{ env.PATCH_VERSION == '0' }}
-      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
-      with:
-        token: ${{ secrets.PROWLER_BOT_ACCESS_TOKEN }}
-        commit-message: 'chore(api): update prowler dependency to ${{ env.BRANCH_NAME }} for release ${{ env.PROWLER_VERSION }}'
-        branch: update-api-dependency-${{ env.BRANCH_NAME }}-${{ github.run_number }}
-        base: ${{ env.BRANCH_NAME }}
-        add-paths: |
-          api/pyproject.toml
-          api/poetry.lock
-        title: "chore(api): Update prowler dependency to ${{ env.BRANCH_NAME }} for release ${{ env.PROWLER_VERSION }}"
-        body: |
-          ### Description
-
-          Updates the API prowler dependency for release ${{ env.PROWLER_VERSION }}.
-
-          **Changes:**
-          - Updates `api/pyproject.toml` prowler dependency from `@master` to `@${{ env.BRANCH_NAME }}`
-          - Updates `api/poetry.lock` file with resolved dependencies
-
-          This PR should be merged into the `${{ env.BRANCH_NAME }}` release branch.
-
-          ### License
-
-          By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license.
-        author: prowler-bot <179230569+prowler-bot@users.noreply.github.com>
-        labels: |
-          component/api
-          no-changelog
 
     - name: Create draft release
       uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1

@@ -142,10 +142,7 @@ class TestSectoIngestion:
             provider=provider,
             secret_type=ProviderSecret.TypeChoices.STATIC,
             name="okta",
-            secret={
-                "org_url": "https://acme.okta.com",
-                "api_token": "fake-api-token",
-            },
+            secret={"api_token": "fake-api-token"},
         )
         now = datetime(2026, 5, 9, 12, 0, tzinfo=timezone.utc)
         first_body = [
@@ -223,14 +220,11 @@ class TestSectoIngestion:
         cursor = SectoLogCursor.objects.get(provider=provider)
         assert cursor.okta_system_cursor_at == now
 
-    def test_validate_okta_secret_requires_org_url_and_api_token(self):
+    def test_validate_okta_secret_requires_api_token(self):
         BaseWriteProviderSecretSerializer.validate_secret_based_on_provider(
             Provider.ProviderChoices.OKTA.value,
             ProviderSecret.TypeChoices.STATIC,
-            {
-                "org_url": "https://acme.okta.com",
-                "api_token": "fake-api-token",
-            },
+            {"api_token": "fake-api-token"},
         )
 
     def test_pull_m365_logs_stores_events_updates_cursor_and_detects_threat(

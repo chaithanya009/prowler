@@ -21,16 +21,6 @@ export const OktaCredentialsForm = ({
       </div>
       <WizardInputField
         control={control}
-        name={ProviderCredentialFields.OKTA_ORG_URL}
-        type="url"
-        label="Org URL"
-        labelPlacement="inside"
-        placeholder="https://your-org.okta.com"
-        variant="bordered"
-        isRequired
-      />
-      <WizardInputField
-        control={control}
         name={ProviderCredentialFields.OKTA_API_TOKEN}
         type="password"
         label="API Token"

@@ -251,9 +251,6 @@ export const useCredentialsForm = ({
       case "okta":
         return {
           ...baseDefaults,
-          [ProviderCredentialFields.OKTA_ORG_URL]: providerUid
-            ? `https://${providerUid}`
-            : "",
           [ProviderCredentialFields.OKTA_API_TOKEN]: "",
         };
       default:
