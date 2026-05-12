@@ -1,0 +1,41 @@
+{
+  "Provider": "okta",
+  "CheckID": "user_admins_two_active_factors",
+  "CheckTitle": "Active admins have at least two enrolled authenticators",
+  "CheckType": [],
+  "ServiceName": "user",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaUser",
+  "ResourceGroup": "IAM",
+  "Description": "Active Okta users with any admin role are evaluated for at least two active enrolled MFA factors or authenticators.",
+  "Risk": "Admins with fewer than two active authenticators face higher takeover risk and greater lockout risk if their only enrolled method is lost or reset.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://help.okta.com/en-us/content/topics/security/mfa/mfa-enable-admins.htm",
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserFactor/",
+    "https://developer.okta.com/docs/api/openapi/okta-management/guides/roles",
+    "https://help.okta.com/oie/en-us/content/topics/security/mfa/mfa-enable-admins.htm",
+    "https://www.cisa.gov/sites/default/files/2023-01/fact-sheet-implementing-phishing-resistant-mfa-508c.pdf"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, review active users with admin roles.\n2. Check each admin's enrolled security methods or factors.\n3. Require enrollment in at least two authenticators, including a phishing-resistant option where possible.\n4. Update authenticator enrollment policies so admins are prompted to enroll missing authenticators.\n5. Follow up with admins who remain below the requirement.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Ensure every active administrator is enrolled in at least two active authenticators to reduce takeover and lockout risk.",
+      "Url": "https://hub.prowler.com/check/user_admins_two_active_factors"
+    }
+  },
+  "Categories": [
+    "identity-access",
+    "privilege-escalation"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.users.read and okta.roles.read. User Factors API output is filtered by the highest-priority applicable enrollment policy."
+}

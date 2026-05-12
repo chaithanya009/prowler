@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_global_session_persistent_cookie_disabled",
+  "CheckTitle": "Persistent cookies are disabled for default global session access",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Checks broad global session rules do not enable persistent cookies.",
+  "Risk": "Persistent cookies increase the persistence window for stolen browser state.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://developer.okta.com/docs/guides/keep-me-signed-in/main/",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/add-okta-sign-on-policy-rule.htm",
+    "https://pages.nist.gov/800-63-4/sp800-63b/session/"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. Review the broad/default global session policy rule through the Okta API or Admin Console where supported.\n2. Set persistent cookie behavior to disabled for the rule.\n3. Avoid enabling Stay signed in for broad populations or shared-device use cases.\n4. Confirm browser-close behavior terminates the session as expected.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Disable persistent global session cookies on broad/default access rules unless a documented exception exists.",
+      "Url": "https://hub.prowler.com/check/policy_global_session_persistent_cookie_disabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

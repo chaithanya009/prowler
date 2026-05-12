@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "user_super_admin_count_limited",
+  "CheckTitle": "Super Admin population is small",
+  "CheckType": [],
+  "ServiceName": "user",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaUser",
+  "ResourceGroup": "IAM",
+  "Description": "Active Okta users with an effective SUPER_ADMIN role are counted and compared with the configured maximum, defaulting to three.",
+  "Risk": "Too many standing Super Admins increases the chance that one compromised account can change tenant-wide policies, applications, users, and admin permissions.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://sec.okta.com/articles/leastprivilege/",
+    "https://developer.okta.com/docs/api/openapi/okta-management/guides/roles",
+    "https://help.okta.com/en-us/content/topics/security/healthinsight/admins-super-admins.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Administrators.\n2. Review users with the Super Admin role.\n3. Remove Super Admin from users who do not need full tenant control.\n4. Replace broad privilege with narrower admin roles where possible.\n5. Keep emergency access accounts documented and reviewed.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Reduce standing Super Admin assignments to the smallest reviewed population, normally three or fewer users.",
+      "Url": "https://hub.prowler.com/check/user_super_admin_count_limited"
+    }
+  },
+  "Categories": [
+    "identity-access",
+    "privilege-escalation"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.users.read and okta.roles.read. Configure max_super_admins in the okta audit config to override the default threshold of 3."
+}

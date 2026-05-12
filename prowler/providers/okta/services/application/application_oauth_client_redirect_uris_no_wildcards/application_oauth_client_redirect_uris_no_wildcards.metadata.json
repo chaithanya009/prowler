@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "application_oauth_client_redirect_uris_no_wildcards",
+  "CheckTitle": "OAuth clients have no wildcard sign-in redirect URIs",
+  "CheckType": [],
+  "ServiceName": "application",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaOAuthClient",
+  "ResourceGroup": "IAM",
+  "Description": "Okta OAuth and OIDC clients are evaluated for sign-in redirect URIs whose host contains a wildcard label.",
+  "Risk": "Wildcard redirect hosts can send authorization codes or tokens to unintended or attacker-controlled subdomains if DNS or app ownership changes.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-oauth/oauth/client",
+    "https://support.okta.com/help/s/article/openid-connect-oidc-redirect-uri",
+    "https://support.okta.com/help/s/article/Does-Okta-Support-Wildcard-Redirect-URIs?language=en_US"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Applications > Applications.\n2. Open the affected OIDC app integration and review General Settings > Login.\n3. Remove wildcard sign-in redirect URIs and add exact HTTPS callback URIs for each approved environment.\n4. Disable wildcard redirect support for the app unless a documented exception is approved.\n5. Test the authorization-code flow after updating the redirect URI allowlist.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Replace wildcard OIDC sign-in redirect URIs with exact HTTPS redirect URIs controlled by the application owner.",
+      "Url": "https://hub.prowler.com/check/application_oauth_client_redirect_uris_no_wildcards"
+    }
+  },
+  "Categories": [
+    "identity-access",
+    "trust-boundaries"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.clients.read. This check intentionally has no allowlist unless a standard Prowler mutelist is used."
+}

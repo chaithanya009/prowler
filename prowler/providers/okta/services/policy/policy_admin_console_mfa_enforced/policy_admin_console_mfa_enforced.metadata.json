@@ -1,0 +1,41 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_admin_console_mfa_enforced",
+  "CheckTitle": "Okta Admin Console policy enforces MFA",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "The app sign-in policy mapped to the Okta Admin Console is evaluated so broad active rules require MFA or deny access.",
+  "Risk": "Admin Console access with a single factor exposes the Okta control plane to credential theft, privilege escalation, policy tampering, and tenant takeover.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://help.okta.com/en-us/content/topics/security/mfa/mfa-enable-admins.htm",
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tags/policy",
+    "https://sec.okta.com/articles/leastprivilege/",
+    "https://help.okta.com/oie/en-us/content/topics/security/mfa/mfa-enable-admins.htm",
+    "https://www.cisa.gov/sites/default/files/2023-01/fact-sheet-implementing-phishing-resistant-mfa-508c.pdf"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authentication Policies > App sign-in.\n2. Open the Okta Admin Console policy.\n3. Edit each active broad, default, or catch-all rule.\n4. Set User must authenticate with to a two-factor option and prefer phishing-resistant possession constraints.\n5. Repeat for the catch-all rule and save the policy.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Require MFA for every active broad or catch-all Okta Admin Console app sign-in rule.",
+      "Url": "https://hub.prowler.com/check/policy_admin_console_mfa_enforced"
+    }
+  },
+  "Categories": [
+    "identity-access",
+    "privilege-escalation"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.policies.read. The parser supports Classic and Identity Engine policy action variants."
+}

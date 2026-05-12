@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "agentpool_ad_agents_supported_version",
+  "CheckTitle": "AD agent pools have update settings and supported versions",
+  "CheckType": [],
+  "ServiceName": "agentpool",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaAgentPool",
+  "ResourceGroup": "IAM",
+  "Description": "Checks AD agent pools have update settings and no agent below minimum supported version.",
+  "Risk": "Outdated directory agents can miss security fixes and increase operational risk for identity integrations.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/agent-pools/",
+    "https://help.okta.com/en-us/Content/Topics/Directory/ad-agent-update.htm",
+    "https://help.okta.com/en-us/Content/Topics/Directory/agent-auto-update-main.htm",
+    "https://help.okta.com/en-us/Content/Topics/Settings/Version_Histories/Ver_History_AD_Agent.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Directory > Directory Integrations.\n2. Open the AD integration and select the Agents tab.\n3. Review each agent's status and version.\n4. Enable or schedule AD agent auto-update where available.\n5. Update outdated agents, keeping at least two operational agents available during upgrades.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Keep AD agent pools updated, configured for updates, and at or above Okta's minimum supported version.",
+      "Url": "https://hub.prowler.com/check/agentpool_ad_agents_supported_version"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

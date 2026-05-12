@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "authenticator_voice_disabled",
+  "CheckTitle": "Voice-call MFA is disabled org-wide",
+  "CheckType": [],
+  "ServiceName": "authenticator",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaAuthenticator",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that voice-call MFA is not active.",
+  "Risk": "Voice-call MFA inherits PSTN risks and can be abused through telephony attacks.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/authenticators-admin/",
+    "https://pages.nist.gov/800-63-4/sp800-63b.html",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-phone.htm",
+    "https://www.cisa.gov/sites/default/files/2023-01/fact-sheet-implementing-phishing-resistant-mfa-508c.pdf"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authenticators or Security > Multifactor.\n2. Verify users have an alternative authenticator available.\n3. Remove voice call from enrollment and sign-in policies.\n4. Deactivate the voice-call factor or phone voice method.\n5. Review exceptions for accessibility or break-glass use and document compensating controls.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Disable voice-call MFA and migrate users to stronger authenticators.",
+      "Url": "https://hub.prowler.com/check/authenticator_voice_disabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

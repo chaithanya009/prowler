@@ -1300,7 +1300,9 @@ class CheckReportOkta(Check_Report):
         location: str = "global",
     ) -> None:
         super().__init__(metadata, resource)
-        self.resource_name = resource_name or getattr(resource, "login", "")
+        self.resource_name = resource_name or getattr(
+            resource, "login", getattr(resource, "name", "")
+        )
         self.resource_id = resource_id or getattr(resource, "id", "")
         self.location = location
 

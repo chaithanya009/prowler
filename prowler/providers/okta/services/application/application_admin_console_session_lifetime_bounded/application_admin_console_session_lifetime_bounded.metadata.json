@@ -1,0 +1,38 @@
+{
+  "Provider": "okta",
+  "CheckID": "application_admin_console_session_lifetime_bounded",
+  "CheckTitle": "Admin Console session lifetime is bounded",
+  "CheckType": [],
+  "ServiceName": "application",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaApplication",
+  "ResourceGroup": "IAM",
+  "Description": "Checks Okta Admin Console first-party session lifetime and idle timeout settings.",
+  "Risk": "Overly long Admin Console sessions increase risk if an administrator browser session is stolen.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/OktaApplicationSettings/",
+    "https://help.okta.com/en-us/content/topics/security/policies/configure-admin-session.htm",
+    "https://pages.nist.gov/800-63-4/sp800-63b/session/"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Applications > Applications.\n2. Open Okta Admin Console and select the Sign On tab.\n3. Edit the Okta Admin Console session settings.\n4. Set Maximum app session lifetime to 12 hours or less.\n5. Set Maximum app session idle time to 15 minutes or less, then save.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Bound Okta Admin Console sessions with a finite maximum lifetime and short idle timeout.",
+      "Url": "https://hub.prowler.com/check/application_admin_console_session_lifetime_bounded"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

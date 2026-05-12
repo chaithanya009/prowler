@@ -23,6 +23,14 @@ class OktaIdentityInfo(BaseModel):
     org_url: str
 
 
+class OktaResource(BaseModel):
+    """Generic Okta resource for tenant-level findings."""
+
+    id: str
+    name: str
+    location: str = "global"
+
+
 class OktaOutputOptions(ProviderOutputOptions):
     """Customize output filenames for Okta scans."""
 

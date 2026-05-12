@@ -1,0 +1,40 @@
+{
+  "Provider": "okta",
+  "CheckID": "apitoken_not_owned_by_privileged_admin",
+  "CheckTitle": "SSWS API tokens are not owned by Super Admin or Org Admin accounts",
+  "CheckType": [],
+  "ServiceName": "apitoken",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaApiToken",
+  "ResourceGroup": "IAM",
+  "Description": "Active Okta SSWS API tokens are evaluated to confirm their current owner does not hold SUPER_ADMIN or ORG_ADMIN privileges.",
+  "Risk": "SSWS tokens inherit the creator's privileges. Tokens owned by Super Admin or Org Admin users give automation or stolen secrets excessive tenant control.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/api-tokens/",
+    "https://developer.okta.com/docs/api/openapi/okta-management/guides/overview/",
+    "https://developer.okta.com/docs/api/openapi/okta-management/guides/roles",
+    "https://help.okta.com/oie/en-us/content/topics/security/api.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. Inventory active SSWS API tokens and identify each token owner.\n2. Create a dedicated service account for automation that needs API access.\n3. Assign only the admin role permissions required for that automation.\n4. Create a replacement token from the service account and apply network restrictions.\n5. Update integrations to use the replacement token, then revoke the high-privilege user's token.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Move automation tokens away from standing Super Admin or Org Admin users and use a dedicated service account with reviewed privileges.",
+      "Url": "https://hub.prowler.com/check/apitoken_not_owned_by_privileged_admin"
+    }
+  },
+  "Categories": [
+    "secrets",
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.apiTokens.read and okta.roles.read. Orgs with no active SSWS API tokens pass this check."
+}

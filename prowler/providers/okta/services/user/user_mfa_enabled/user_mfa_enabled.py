@@ -1,20 +1,7 @@
 from prowler.lib.check.models import Check, CheckReportOkta
 from prowler.providers.okta.services.user.user_client import user_client
-
-MFA_FACTOR_TYPES = frozenset(
-    {
-        "call",
-        "email",
-        "push",
-        "signed_nonce",
-        "sms",
-        "token",
-        "token:hardware",
-        "token:hotp",
-        "token:software:totp",
-        "u2f",
-        "webauthn",
-    }
+from prowler.providers.okta.services.user.user_service import (
+    MFA_FACTOR_TYPES,
 )
 
 

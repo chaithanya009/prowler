@@ -23,6 +23,19 @@ export function toLocalDateString(
 }
 
 /**
+ * Formats an ISO string or Date into the UTC `yyyy-MM-dd` bucket used by
+ * server-side date filters backed by UUIDv7 partitions.
+ */
+export function toUTCDateString(
+  value: string | Date | null | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (isNaN(date.getTime())) return undefined;
+  return date.toISOString().slice(0, 10);
+}
+
+/**
  * Formats a duration in seconds to a human-readable string like "2h 5m 30s".
  */
 export function formatDuration(seconds: number): string {

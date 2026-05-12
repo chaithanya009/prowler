@@ -1,0 +1,38 @@
+{
+  "Provider": "okta",
+  "CheckID": "application_assignments_use_groups",
+  "CheckTitle": "Apps are assigned to groups, not directly to end users",
+  "CheckType": [],
+  "ServiceName": "application",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaApplication",
+  "ResourceGroup": "IAM",
+  "Description": "Checks active apps use group assignments and avoid direct user assignments.",
+  "Risk": "Direct app assignments increase access sprawl and make access review harder.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/apps/",
+    "https://help.okta.com/en-us/content/topics/users-groups-profiles/usgp-about-groups.htm",
+    "https://help.okta.com/oie/en-us/Content/Topics/users-groups-profiles/usgp-assign-app-group.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Applications > Applications.\n2. Open the affected app and select the Assignments tab.\n3. Create or select a group that represents the users who need the app.\n4. Assign the app to the group and confirm the expected users receive access.\n5. Remove direct user assignments after group-based assignment is in place.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Use group assignments for applications so access can be reviewed and changed centrally.",
+      "Url": "https://hub.prowler.com/check/application_assignments_use_groups"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

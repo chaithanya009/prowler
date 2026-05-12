@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "authenticator_okta_verify_enabled",
+  "CheckTitle": "Okta Verify is enabled for users",
+  "CheckType": [],
+  "ServiceName": "authenticator",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaAuthenticator",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that Okta Verify is active for users.",
+  "Risk": "If Okta Verify is disabled, users may be limited to weaker or less resilient MFA methods.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/authenticators-admin/",
+    "https://developer.okta.com/docs/reference/api/factor-admin/",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-okta-verify.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-okta-verify-options.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authenticators.\n2. On the Setup tab, add or activate Okta Verify.\n3. Enable the required verification options such as push, TOTP, or FastPass.\n4. On the Enrollment tab, set Okta Verify to Optional or Required in relevant policies.\n5. Communicate enrollment instructions and monitor adoption.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable Okta Verify and include it in enrollment policies so users have a stronger authenticator than SMS or voice.",
+      "Url": "https://hub.prowler.com/check/authenticator_okta_verify_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

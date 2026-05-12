@@ -1,0 +1,40 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_legacy_sms_recovery_disabled",
+  "CheckTitle": "SMS is not enabled as a legacy self-service recovery method",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Checks legacy password-policy recovery settings do not allow SMS recovery.",
+  "Risk": "SMS recovery is a weak account recovery path that can bypass stronger authentication controls.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://pages.nist.gov/800-63-4/sp800-63b.html",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/oamp.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/oamp-configure-account-recovery.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-phone.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, open the Password authenticator or password policy recovery settings.\n2. Disable SMS as a legacy recovery factor.\n3. Configure account recovery through Okta account management policy.\n4. Require stronger recovery authenticators such as Okta Verify, FastPass, or Passkeys where possible.\n5. Notify users before removing SMS recovery.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Disable legacy SMS self-service recovery and use stronger recovery through Okta account management policy.",
+      "Url": "https://hub.prowler.com/check/policy_legacy_sms_recovery_disabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

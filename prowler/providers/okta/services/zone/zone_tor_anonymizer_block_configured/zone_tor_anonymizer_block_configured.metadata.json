@@ -1,0 +1,37 @@
+{
+  "Provider": "okta",
+  "CheckID": "zone_tor_anonymizer_block_configured",
+  "CheckTitle": "An active block zone exists for Tor anonymizer traffic",
+  "CheckType": [],
+  "ServiceName": "zone",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaNetworkZone",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that at least one active network block zone targets Tor anonymizer traffic.",
+  "Risk": "Without a Tor block zone, anonymized credential attacks can reach the tenant sign-in surface.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/NetworkZone/",
+    "https://help.okta.com/en-us/Content/Topics/Security/network/about-network-zones.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Networks.\n2. Create a dynamic or enhanced dynamic zone for Tor anonymizer traffic if your org supports it.\n3. Set the zone usage or policy behavior to block the traffic.\n4. Activate the zone and attach it to relevant sign-on or app sign-in controls if required.\n5. Monitor System Log events for blocked traffic and tune only documented exceptions.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Create and activate a network zone that blocks Tor anonymizer traffic before it reaches sign-in flows.",
+      "Url": "https://hub.prowler.com/check/zone_tor_anonymizer_block_configured"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

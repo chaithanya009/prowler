@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "application_oauth_client_weak_grants_disabled",
+  "CheckTitle": "OIDC clients do not allow weak or obsolete grant types",
+  "CheckType": [],
+  "ServiceName": "application",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaOAuthClient",
+  "ResourceGroup": "IAM",
+  "Description": "Checks OAuth clients for implicit or password grants and invalid service-app grants.",
+  "Risk": "Weak grant types can expose tokens or credentials and are discouraged in modern OAuth deployments.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/oauth-clients/",
+    "https://developer.okta.com/docs/guides/implement-grant-type/authcodepkce/main/",
+    "https://developer.okta.com/docs/guides/implement-grant-type/implicit/main/",
+    "https://developer.okta.com/docs/guides/implement-grant-type/ropassword/main/"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, open the affected OIDC app integration.\n2. Review the Grant type settings on the General or Sign On configuration page.\n3. Disable Resource Owner Password, Implicit, and other grants that are not required by the app architecture.\n4. For browser or native apps, migrate to Authorization Code with PKCE.\n5. Retest application sign-in and token exchange after the grant list is reduced.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Remove obsolete or high-risk OAuth grants and prefer authorization code with PKCE or client credentials where appropriate.",
+      "Url": "https://hub.prowler.com/check/application_oauth_client_weak_grants_disabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

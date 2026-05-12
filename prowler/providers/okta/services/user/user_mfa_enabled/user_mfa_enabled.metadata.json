@@ -13,17 +13,20 @@
   "Risk": "Okta users without MFA are more exposed to credential theft, phishing, and password reuse attacks.",
   "RelatedUrl": "",
   "AdditionalURLs": [
-    "https://developer.okta.com/docs/api/resources/users"
+    "https://developer.okta.com/docs/api/resources/users",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/healthinsight/required-authenticators.htm",
+    "https://help.okta.com/en-us/content/topics/security/healthinsight/required-factors.htm",
+    "https://www.cisa.gov/sites/default/files/2023-01/fact-sheet-implementing-phishing-resistant-mfa-508c.pdf"
   ],
   "Remediation": {
     "Code": {
       "CLI": "",
       "NativeIaC": "",
-      "Other": "Require MFA in Okta authenticator enrollment policies and ensure active users enroll an active MFA factor.",
+      "Other": "1. Enable strong authenticators such as Okta Verify, FastPass, or Passkeys.\n2. Set at least one authenticator or factor to Required in enrollment policies.\n3. Update global session and app sign-in policies to require MFA where appropriate.\n4. Monitor enrollment status and prompt users who do not have MFA configured.",
       "Terraform": ""
     },
     "Recommendation": {
-      "Text": "Require MFA for active Okta users and follow up with users that have no active MFA factor enrolled.",
+      "Text": "Require MFA for active users and ensure users are enrolled in at least one usable authenticator.",
       "Url": "https://hub.prowler.com/check/user_mfa_enabled"
     }
   },

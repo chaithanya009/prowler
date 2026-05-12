@@ -44,6 +44,7 @@ class TestUserService:
                     }
                 ]
             ),
+            _response([{"id": "role-1", "type": "SUPER_ADMIN"}]),
         ]
 
         service = User(provider)
@@ -52,6 +53,12 @@ class TestUserService:
         assert service.users[USER_ID].login == USER_LOGIN
         assert service.users[USER_ID].factors[0].factor_type == "push"
         assert service.users[USER_ID].factors[0].status == "ACTIVE"
+        assert service.users[USER_ID].roles == ["SUPER_ADMIN"]
+        provider.session.http_session.get.assert_any_call(
+            f"{ORG_URL}/api/v1/users",
+            params={"limit": 200, "filter": 'status eq "ACTIVE"'},
+            timeout=30,
+        )
 
     def test_paginates_users(self):
         provider = set_mocked_okta_provider()
@@ -77,6 +84,8 @@ class TestUserService:
                     }
                 ]
             ),
+            _response([]),
+            _response([]),
             _response([]),
             _response([]),
         ]

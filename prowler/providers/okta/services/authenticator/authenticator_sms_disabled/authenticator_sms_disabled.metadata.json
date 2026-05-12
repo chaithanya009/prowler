@@ -1,0 +1,41 @@
+{
+  "Provider": "okta",
+  "CheckID": "authenticator_sms_disabled",
+  "CheckTitle": "SMS MFA is disabled org-wide",
+  "CheckType": [],
+  "ServiceName": "authenticator",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaAuthenticator",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that SMS is not active as an org-wide MFA method.",
+  "Risk": "SMS MFA can be abused through SIM swap, interception, and social engineering.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/authenticators-admin/",
+    "https://developer.okta.com/docs/reference/api/factor-admin/",
+    "https://pages.nist.gov/800-63-4/sp800-63b.html",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-phone.htm",
+    "https://www.cisa.gov/sites/default/files/2023-01/fact-sheet-implementing-phishing-resistant-mfa-508c.pdf",
+    "https://pages.nist.gov/800-63-4/sp800-63b/authenticators/"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authenticators or Security > Multifactor.\n2. Confirm users have an alternative authenticator such as Okta Verify, FastPass, or Passkeys.\n3. Remove SMS from authenticator enrollment policies and recovery flows where possible.\n4. Deactivate the SMS/Phone OTP authenticator or factor.\n5. Monitor sign-in and recovery helpdesk volume after migration.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Disable SMS as an MFA authenticator and migrate users to phishing-resistant or stronger possession factors.",
+      "Url": "https://hub.prowler.com/check/authenticator_sms_disabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

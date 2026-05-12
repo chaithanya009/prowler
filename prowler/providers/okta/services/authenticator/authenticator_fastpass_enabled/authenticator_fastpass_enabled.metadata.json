@@ -1,0 +1,40 @@
+{
+  "Provider": "okta",
+  "CheckID": "authenticator_fastpass_enabled",
+  "CheckTitle": "Okta FastPass is enabled as a device-bound method",
+  "CheckType": [],
+  "ServiceName": "authenticator",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaAuthenticator",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that Okta FastPass signed_nonce authentication is active.",
+  "Risk": "Without FastPass, Okta Verify may be limited to weaker push or OTP methods instead of device-bound authentication.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/authenticators-admin/",
+    "https://www.cisa.gov/mfa",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/devices/fp/fp-configure.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-okta-verify-options.htm",
+    "https://www.cisa.gov/sites/default/files/2023-01/fact-sheet-implementing-phishing-resistant-mfa-508c.pdf"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authenticators.\n2. Open Okta Verify and edit Verification options.\n3. Enable Okta FastPass for all required platforms.\n4. Configure a global session policy and app sign-in policy that allow or require Okta FastPass.\n5. Deploy Okta Verify and enrollment guidance to workforce users.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable Okta FastPass through Okta Verify so users can use a device-bound authentication method.",
+      "Url": "https://hub.prowler.com/check/authenticator_fastpass_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_webauthn_user_verification_required",
+  "CheckTitle": "WebAuthn user verification is required where WebAuthn is used",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Checks broad app sign-in rules that allow WebAuthn and verifies user verification is required.",
+  "Risk": "WebAuthn without required user verification can provide lower assurance that the legitimate user was present.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://developer.okta.com/docs/reference/api/authenticators-admin/",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/passkeys-access-controls.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-passkeys.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authentication Policies > App sign-in.\n2. Open policies and rules that allow Passkeys or FIDO2 WebAuthn.\n3. Edit possession factor constraints for WebAuthn/Passkeys.\n4. Set user verification to Required for authentication where supported.\n5. Confirm enrollment settings do not conflict with the stricter app policy.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Require user verification where WebAuthn or Passkeys are allowed so the authenticator verifies local user presence with a PIN or biometric.",
+      "Url": "https://hub.prowler.com/check/policy_webauthn_user_verification_required"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

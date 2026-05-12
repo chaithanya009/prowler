@@ -1,51 +1,60 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { type ComponentType, lazy, Suspense } from "react";
+import { type ReactNode } from "react";
 
+import {
+  AlibabaCloudProviderBadge,
+  AWSProviderBadge,
+  AzureProviderBadge,
+  CloudflareProviderBadge,
+  GCPProviderBadge,
+  GitHubProviderBadge,
+  GoogleWorkspaceProviderBadge,
+  IacProviderBadge,
+  ImageProviderBadge,
+  KS8ProviderBadge,
+  M365ProviderBadge,
+  MongoDBAtlasProviderBadge,
+  OktaProviderBadge,
+  OpenStackProviderBadge,
+  OracleCloudProviderBadge,
+  VercelProviderBadge,
+} from "@/components/icons/providers-badge";
 import {
   MultiSelect,
   MultiSelectContent,
   MultiSelectItem,
   type MultiSelectSearchProp,
+  MultiSelectSelectAll,
   MultiSelectTrigger,
   MultiSelectValue,
 } from "@/components/shadcn/select/multiselect";
 import { useUrlFilters } from "@/hooks/use-url-filters";
-import { type ProviderProps, ProviderType } from "@/types/providers";
+import {
+  getProviderDisplayName,
+  type ProviderProps,
+  type ProviderType,
+} from "@/types/providers";
 
-const M365ProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.M365ProviderBadge,
-  })),
-);
-const OktaProviderBadge = lazy(() =>
-  import("@/components/icons/providers-badge").then((m) => ({
-    default: m.OktaProviderBadge,
-  })),
-);
-
-type IconProps = { width: number; height: number };
-
-const IconPlaceholder = ({ width, height }: IconProps) => (
-  <div style={{ width, height }} />
-);
-
-const PROVIDER_DATA: Record<
-  Extract<ProviderType, "m365" | "okta">,
-  { label: string; icon: ComponentType<IconProps> }
-> = {
-  m365: {
-    label: "Microsoft 365",
-    icon: M365ProviderBadge,
-  },
-  okta: {
-    label: "Okta",
-    icon: OktaProviderBadge,
-  },
+const PROVIDER_ICON: Record<ProviderType, ReactNode> = {
+  aws: <AWSProviderBadge width={24} height={24} />,
+  azure: <AzureProviderBadge width={24} height={24} />,
+  gcp: <GCPProviderBadge width={24} height={24} />,
+  kubernetes: <KS8ProviderBadge width={24} height={24} />,
+  m365: <M365ProviderBadge width={24} height={24} />,
+  github: <GitHubProviderBadge width={24} height={24} />,
+  googleworkspace: <GoogleWorkspaceProviderBadge width={24} height={24} />,
+  iac: <IacProviderBadge width={24} height={24} />,
+  image: <ImageProviderBadge width={24} height={24} />,
+  oraclecloud: <OracleCloudProviderBadge width={24} height={24} />,
+  mongodbatlas: <MongoDBAtlasProviderBadge width={24} height={24} />,
+  alibabacloud: <AlibabaCloudProviderBadge width={24} height={24} />,
+  cloudflare: <CloudflareProviderBadge width={24} height={24} />,
+  openstack: <OpenStackProviderBadge width={24} height={24} />,
+  vercel: <VercelProviderBadge width={24} height={24} />,
+  okta: <OktaProviderBadge width={24} height={24} />,
 };
-
-type VisibleProviderType = keyof typeof PROVIDER_DATA;
 
 /** Common props shared by both batch and instant modes. */
 interface ProviderTypeSelectorBaseProps {
@@ -101,7 +110,7 @@ export const ProviderTypeSelector = ({
   // In batch mode, use the parent-controlled pending values; otherwise, use URL state.
   const selectedTypes = (
     onBatchChange ? selectedValues : urlSelectedTypes
-  ).filter((type): type is VisibleProviderType => type in PROVIDER_DATA);
+  ).filter((type): type is ProviderType => type in PROVIDER_ICON);
 
   const handleMultiValueChange = (values: string[]) => {
     if (onBatchChange) {
@@ -109,7 +118,8 @@ export const ProviderTypeSelector = ({
       return;
     }
     navigateWithParams((params) => {
-      // Update provider_type__in
+      params.delete("filter[provider_id__in]");
+
       if (values.length > 0) {
         params.set("filter[provider_type__in]", values.join(","));
       } else {
@@ -125,19 +135,13 @@ export const ProviderTypeSelector = ({
         .map((p) => p.attributes.provider),
     ),
   )
-    .filter((type): type is VisibleProviderType => type in PROVIDER_DATA)
+    .filter((type): type is ProviderType => type in PROVIDER_ICON)
     .sort((a, b) =>
-      PROVIDER_DATA[a].label.localeCompare(PROVIDER_DATA[b].label),
+      getProviderDisplayName(a).localeCompare(getProviderDisplayName(b)),
     );
 
-  const renderIcon = (providerType: VisibleProviderType) => {
-    const IconComponent = PROVIDER_DATA[providerType].icon;
-    return (
-      <Suspense fallback={<IconPlaceholder width={24} height={24} />}>
-        <IconComponent width={24} height={24} />
-      </Suspense>
-    );
-  };
+  const renderIcon = (providerType: ProviderType) =>
+    PROVIDER_ICON[providerType];
 
   const selectedLabel = () => {
     if (selectedTypes.length === 0) return null;
@@ -146,7 +150,9 @@ export const ProviderTypeSelector = ({
       return (
         <span className="flex min-w-0 items-center gap-2">
           {renderIcon(providerType)}
-          <span className="truncate">{PROVIDER_DATA[providerType].label}</span>
+          <span className="truncate">
+            {getProviderDisplayName(providerType)}
+          </span>
         </span>
       );
     }
@@ -179,32 +185,20 @@ export const ProviderTypeSelector = ({
         <MultiSelectContent search={search}>
           {availableTypes.length > 0 ? (
             <>
-              <div
-                role="option"
-                aria-selected={selectedTypes.length === 0}
-                aria-label="Select all providers (clears current selection to show all)"
-                tabIndex={0}
-                className="text-text-neutral-secondary flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700/50"
-                onClick={() => handleMultiValueChange([])}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleMultiValueChange([]);
-                  }
-                }}
-              >
-                Select All
-              </div>
+              <MultiSelectSelectAll>All providers</MultiSelectSelectAll>
               {availableTypes.map((providerType) => (
                 <MultiSelectItem
                   key={providerType}
                   value={providerType}
-                  badgeLabel={PROVIDER_DATA[providerType].label}
-                  keywords={[providerType, PROVIDER_DATA[providerType].label]}
-                  aria-label={`${PROVIDER_DATA[providerType].label} provider`}
+                  badgeLabel={getProviderDisplayName(providerType)}
+                  keywords={[
+                    providerType,
+                    getProviderDisplayName(providerType),
+                  ]}
+                  aria-label={`${getProviderDisplayName(providerType)} provider`}
                 >
                   <span aria-hidden="true">{renderIcon(providerType)}</span>
-                  <span>{PROVIDER_DATA[providerType].label}</span>
+                  <span>{getProviderDisplayName(providerType)}</span>
                 </MultiSelectItem>
               ))}
             </>

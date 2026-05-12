@@ -1,9 +1,12 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { AccountsSelector } from "./accounts-selector";
 
 const multiSelectContentSpy = vi.fn();
+const navigateWithParamsMock = vi.fn();
+let multiSelectOnValuesChange: ((values: string[]) => void) | undefined;
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
@@ -11,7 +14,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/use-url-filters", () => ({
   useUrlFilters: () => ({
-    navigateWithParams: vi.fn(),
+    navigateWithParams: navigateWithParamsMock,
   }),
 }));
 
@@ -35,9 +38,16 @@ vi.mock("@/components/icons/providers-badge", () => ({
 }));
 
 vi.mock("@/components/shadcn/select/multiselect", () => ({
-  MultiSelect: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  MultiSelect: ({
+    children,
+    onValuesChange,
+  }: {
+    children: React.ReactNode;
+    onValuesChange?: (values: string[]) => void;
+  }) => {
+    multiSelectOnValuesChange = onValuesChange;
+    return <div>{children}</div>;
+  },
   MultiSelectTrigger: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -63,9 +73,18 @@ vi.mock("@/components/shadcn/select/multiselect", () => ({
     value: string;
     keywords?: string[];
   }) => (
-    <div data-value={value} data-keywords={keywords?.join("|")}>
+    <div
+      data-value={value}
+      data-keywords={keywords?.join("|")}
+      onClick={() => multiSelectOnValuesChange?.([value])}
+    >
       {children}
     </div>
+  ),
+  MultiSelectSelectAll: ({ children }: { children: React.ReactNode }) => (
+    <button type="button" onClick={() => multiSelectOnValuesChange?.([])}>
+      {children}
+    </button>
   ),
 }));
 
@@ -138,5 +157,35 @@ describe("AccountsSelector", () => {
     expect(
       screen.getByText("Production AWS").closest("[data-value]"),
     ).toHaveAttribute("data-keywords", expect.stringContaining("123456789012"));
+  });
+
+  it("clears selected accounts when All accounts is selected", async () => {
+    const user = userEvent.setup();
+    const onBatchChange = vi.fn();
+
+    render(
+      <AccountsSelector
+        providers={providers}
+        onBatchChange={onBatchChange}
+        selectedValues={["provider-1"]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "All accounts" }));
+
+    expect(onBatchChange).toHaveBeenCalledWith("provider_id__in", []);
+  });
+
+  it("applies account changes immediately outside batch mode", async () => {
+    const user = userEvent.setup();
+
+    render(<AccountsSelector providers={providers} />);
+
+    await user.click(screen.getByText("Production AWS"));
+
+    const params = new URLSearchParams();
+    navigateWithParamsMock.mock.calls[0][0](params);
+
+    expect(params.get("filter[provider_id__in]")).toBe("provider-1");
   });
 });

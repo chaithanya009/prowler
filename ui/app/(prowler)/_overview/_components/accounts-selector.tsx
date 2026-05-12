@@ -26,6 +26,7 @@ import {
   MultiSelectContent,
   MultiSelectItem,
   type MultiSelectSearchProp,
+  MultiSelectSelectAll,
   MultiSelectTrigger,
   MultiSelectValue,
 } from "@/components/shadcn/select/multiselect";
@@ -170,22 +171,7 @@ export function AccountsSelector({
         <MultiSelectContent search={search}>
           {visibleProviders.length > 0 ? (
             <>
-              <div
-                role="option"
-                aria-selected={selectedIds.length === 0}
-                aria-label="Select all accounts (clears current selection to show all)"
-                tabIndex={0}
-                className="text-text-neutral-secondary flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700/50"
-                onClick={() => handleMultiValueChange([])}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleMultiValueChange([]);
-                  }
-                }}
-              >
-                Select All
-              </div>
+              <MultiSelectSelectAll>All accounts</MultiSelectSelectAll>
               {visibleProviders.map((p) => {
                 const id = p.id;
                 const displayName = p.attributes.alias || p.attributes.uid;

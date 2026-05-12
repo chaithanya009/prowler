@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "apitoken_network_restricted",
+  "CheckTitle": "SSWS API tokens are network-restricted",
+  "CheckType": [],
+  "ServiceName": "apitoken",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaApiToken",
+  "ResourceGroup": "IAM",
+  "Description": "Active Okta SSWS API tokens are evaluated for network conditions that restrict where the bearer token can be used.",
+  "Risk": "An unrestricted SSWS token can be replayed from anywhere and acts with the privileges of the user that created it, increasing the blast radius of token theft.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/api-tokens/",
+    "https://help.okta.com/oie/en-us/content/topics/security/api.htm",
+    "https://help.okta.com/en-us/Content/Topics/Security/network/about-network-zones.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > API > Tokens.\n2. Review each active SSWS token and identify tokens with no network restriction.\n3. Create or select an IP/network zone for the automation source that uses the token.\n4. Edit the token and restrict access to that network zone.\n5. Rotate any token that may have been exposed before the restriction was applied.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Restrict every active SSWS API token to reviewed network zones instead of allowing token use from anywhere.",
+      "Url": "https://hub.prowler.com/check/apitoken_network_restricted"
+    }
+  },
+  "Categories": [
+    "secrets",
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.apiTokens.read. Orgs with no active SSWS API tokens pass this check."
+}

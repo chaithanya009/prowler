@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_admin_console_managed_device_required",
+  "CheckTitle": "Sensitive app sign-in policies require a managed device",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Checks broad Admin Console app sign-in policy rules require managed devices.",
+  "Risk": "Without managed-device conditions, stolen credentials and factors may be usable from unmanaged devices.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/devices/managed-main.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/about-app-sign-on-policies.htm",
+    "https://help.okta.com/oie/en-us/content/topics/security/mfa/mfa-enable-admins.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. Configure device management integrations for the platforms in scope.\n2. In the Okta Admin Console, go to Security > Authentication Policies > App sign-in.\n3. Open the sensitive app or Admin Console policy.\n4. Edit broad/default rules to require registered and managed devices, or a device assurance policy.\n5. Test access from managed and unmanaged devices before enforcement.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Require managed devices for sensitive app access, including the Okta Admin Console where this aligns with the device program.",
+      "Url": "https://hub.prowler.com/check/policy_admin_console_managed_device_required"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

@@ -1,0 +1,38 @@
+{
+  "Provider": "okta",
+  "CheckID": "attackprotection_unknown_device_lockout_prevention_enabled",
+  "CheckTitle": "Prevent brute-force lockout from unknown devices is enabled",
+  "CheckType": [],
+  "ServiceName": "attackprotection",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaAttackProtection",
+  "ResourceGroup": "IAM",
+  "Description": "Checks the Attack Protection user-lockout setting for unknown devices.",
+  "Risk": "Without this protection, attackers can cause account lockouts from unknown devices during brute-force attempts.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/AttackProtection/",
+    "https://help.okta.com/en-us/content/topics/security/policies/configure-password-policies.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/oamp-configure-account-recovery.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, review password and attack-protection settings for unknown-device lockout protection.\n2. Enable the setting that prevents brute-force lockout from unknown devices.\n3. Ensure self-service account unlock is available for legitimate users who need a new device.\n4. Monitor System Log events for lockouts and failed sign-in spikes after enabling the control.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable unknown-device brute-force lockout protection to reduce account lockout denial-of-service from unfamiliar devices.",
+      "Url": "https://hub.prowler.com/check/attackprotection_unknown_device_lockout_prevention_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

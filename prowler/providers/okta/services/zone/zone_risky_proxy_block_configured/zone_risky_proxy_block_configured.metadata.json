@@ -1,0 +1,37 @@
+{
+  "Provider": "okta",
+  "CheckID": "zone_risky_proxy_block_configured",
+  "CheckTitle": "At least one active block zone exists for anonymizers or risky proxies",
+  "CheckType": [],
+  "ServiceName": "zone",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaNetworkZone",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that at least one active network block zone targets anonymizer, proxy, VPN, or Tor categories.",
+  "Risk": "Risky proxy and anonymizer traffic can hide credential attacks and automation.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/NetworkZone/",
+    "https://help.okta.com/en-us/Content/Topics/Security/network/about-network-zones.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Networks.\n2. Create a dynamic or enhanced dynamic zone for anonymizers or risky proxy categories.\n3. Configure the zone to block or deny matching sign-in traffic.\n4. Activate the zone and test expected access paths.\n5. Review logs for false positives and document any approved exceptions.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Create an active block zone for anonymizers, risky proxies, or similar high-risk proxy categories.",
+      "Url": "https://hub.prowler.com/check/zone_risky_proxy_block_configured"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

@@ -1,0 +1,37 @@
+{
+  "Provider": "okta",
+  "CheckID": "agentpool_iwa_absent",
+  "CheckTitle": "No Integrated Windows Authentication agent pools exist",
+  "CheckType": [],
+  "ServiceName": "agentpool",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaAgentPool",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that no IWA agent pools exist.",
+  "Risk": "IWA agent pools represent legacy desktop SSO architecture that Okta recommends migrating away from.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/agent-pools/",
+    "https://help.okta.com/en-us/Content/Topics/Directory/ad-dsso-iwa-migrate.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. Inventory existing IWA agents and routing rules.\n2. Configure and test agentless Desktop Single Sign-on.\n3. Set IWA only as a temporary failover option if required during migration.\n4. Disable On-Prem Desktop SSO/IWA after agentless Desktop SSO is active.\n5. Delete remaining IWA agents and routing rules after validation.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Migrate away from Integrated Windows Authentication agents and use agentless Desktop Single Sign-on where desktop SSO is still required.",
+      "Url": "https://hub.prowler.com/check/agentpool_iwa_absent"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

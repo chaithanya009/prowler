@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_authenticator_enrollment_requires_factor",
+  "CheckTitle": "Broad authenticator enrolment policy requires at least one factor",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Broad active MFA or authenticator enrollment policies are evaluated for at least one required authenticator or factor.",
+  "Risk": "If all authenticators are optional or disabled, users may not be forced into MFA enrollment before accessing Okta or protected applications.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://help.okta.com/en-us/content/topics/security/healthinsight/required-factors.htm",
+    "https://developer.okta.com/docs/guides/oie-upgrade-mfa-enroll-policy/main/",
+    "https://help.okta.com/en-us/content/topics/security/policies/configure-mfa-policies.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/healthinsight/required-authenticators.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authenticators.\n2. Open the Enrollment tab and select each broad or default enrollment policy.\n3. Set at least one strong authenticator to Required.\n4. Edit active rules so enrollment is allowed when users are prompted.\n5. Save and monitor enrollment completion.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Require at least one authenticator or factor in broad enrollment policies so users are actually enrolled in MFA.",
+      "Url": "https://hub.prowler.com/check/policy_authenticator_enrollment_requires_factor"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.policies.read. Supports Identity Engine settings.authenticators and Classic settings.factors."
+}

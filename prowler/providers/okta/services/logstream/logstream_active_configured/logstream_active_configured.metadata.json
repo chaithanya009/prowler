@@ -1,0 +1,40 @@
+{
+  "Provider": "okta",
+  "CheckID": "logstream_active_configured",
+  "CheckTitle": "At least one active log stream is configured",
+  "CheckType": [],
+  "ServiceName": "logstream",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaLogStream",
+  "ResourceGroup": "monitoring",
+  "Description": "Okta log stream integrations are evaluated to confirm at least one stream is active and can send System Log events externally.",
+  "Risk": "Without an active log stream, identity events may not reach external monitoring quickly, weakening alerting, investigation, and independent retention.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/LogStream/",
+    "https://help.okta.com/en-us/Content/Topics/Reports/log-streaming/about-log-streams.htm",
+    "https://help.okta.com/en-us/content/topics/reports/log-streaming/about-log-streams.htm",
+    "https://help.okta.com/en-us/content/topics/reports/log-streaming/add-splunk-log-stream.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. Choose a supported destination such as Splunk Cloud or Amazon EventBridge.\n2. In the Okta Admin Console, go to Reports > Log Streaming.\n3. Click Add Log Stream and configure the destination details.\n4. Save the stream and verify that its status is Active.\n5. Confirm events are arriving in the external platform and alert on stream deactivation.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Configure and keep at least one active log stream so Okta System Log events reach an external monitoring or retention platform.",
+      "Url": "https://hub.prowler.com/check/logstream_active_configured"
+    }
+  },
+  "Categories": [
+    "logging",
+    "forensics-ready"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.logStreams.read. Some orgs may rely on System Log API polling instead of log streaming."
+}

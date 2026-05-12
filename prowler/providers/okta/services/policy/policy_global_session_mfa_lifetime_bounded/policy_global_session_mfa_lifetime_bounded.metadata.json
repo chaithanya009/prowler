@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_global_session_mfa_lifetime_bounded",
+  "CheckTitle": "MFA re-prompt interval is not effectively unlimited",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Checks broad global session rules for bounded MFA re-prompt behavior.",
+  "Risk": "Very long MFA lifetimes can make MFA effectively one-time for persistent sessions.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://developer.okta.com/docs/guides/keep-me-signed-in/main/",
+    "https://help.okta.com/en-us/content/topics/security/healthinsight/change-reauthentication.htm",
+    "https://pages.nist.gov/800-63-4/sp800-63b/session/"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, open the global session or Okta sign-on policy.\n2. Edit rules that require MFA.\n3. Set users to be prompted for MFA at every sign-in attempt or within the approved interval.\n4. Align MFA lifetime with the maximum session lifetime.\n5. Save and test the prompt behavior with a pilot user.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Require MFA re-prompt at a bounded interval instead of allowing effectively unlimited MFA lifetime.",
+      "Url": "https://hub.prowler.com/check/policy_global_session_mfa_lifetime_bounded"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

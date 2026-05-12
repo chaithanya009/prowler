@@ -1,0 +1,41 @@
+{
+  "Provider": "okta",
+  "CheckID": "authenticator_passkey_enabled",
+  "CheckTitle": "Passkey authenticator is enabled and usable for workforce users",
+  "CheckType": [],
+  "ServiceName": "authenticator",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaAuthenticator",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that Passkey (FIDO2 WebAuthn) is active and allowed by a broad authenticator enrollment policy.",
+  "Risk": "Without phishing-resistant WebAuthn enrollment, users remain dependent on weaker and more phishable authenticators.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/authenticators-admin/",
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://www.cisa.gov/mfa",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/configure-passkeys.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/authenticators/passkeys-access-controls.htm",
+    "https://www.cisa.gov/resources-tools/resources/phishing-resistant-multi-factor-authentication-mfa-success-story-usdas-fast-identity-online-fido"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Authenticators.\n2. On the Setup tab, add or activate Passkeys (FIDO2 WebAuthn).\n3. Configure user verification as Required where supported.\n4. Add Passkeys to the relevant authenticator enrollment policies as Optional or Required.\n5. Pilot with managed users, then expand enrollment and app sign-in policy requirements.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable Passkeys (FIDO2 WebAuthn) for workforce users and make it available in authenticator enrollment policies.",
+      "Url": "https://hub.prowler.com/check/authenticator_passkey_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

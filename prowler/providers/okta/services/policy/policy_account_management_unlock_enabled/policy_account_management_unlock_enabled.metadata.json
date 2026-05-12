@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "policy_account_management_unlock_enabled",
+  "CheckTitle": "Account unlock is governed by an authentication policy",
+  "CheckType": [],
+  "ServiceName": "policy",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaPolicy",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that Okta account management policy is active for account unlock flows.",
+  "Risk": "Legacy unlock paths can leave recovery governed by weaker controls than app sign-in policy logic.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/concepts/policies/",
+    "https://developer.okta.com/docs/reference/api/policy",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/oamp.htm",
+    "https://help.okta.com/oie/en-us/content/topics/identity-engine/policies/oamp-configure-account-recovery.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, open the Password authenticator rules.\n2. Set account unlock and recovery access control to Authentication policy.\n3. Open the Okta account management policy.\n4. Add or update an unlock rule that requires strong authentication.\n5. Test unlock with a pilot account before broad rollout.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Move account unlock to Okta account management policy rather than relying only on legacy unlock settings.",
+      "Url": "https://hub.prowler.com/check/policy_account_management_unlock_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

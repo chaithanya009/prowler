@@ -1,0 +1,37 @@
+{
+  "Provider": "okta",
+  "CheckID": "org_support_access_not_preapproved",
+  "CheckTitle": "Standing Okta Support access is not pre-approved",
+  "CheckType": [],
+  "ServiceName": "org",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaOrganization",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that Okta Support access is not standing pre-approved.",
+  "Risk": "Standing support access creates a privileged troubleshooting path that should be temporary and case-based.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/OrgSettingSupport/",
+    "https://help.okta.com/en-us/Content/Topics/settings/settings-support-access.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Settings > Account.\n2. Open Give Access to Okta Support.\n3. Disable self-assigned or standing support access approvals.\n4. Grant impersonation only for active support cases that need it and only for the documented time window.\n5. Review support access status after each case is closed.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Do not pre-approve standing Okta Support access; grant case-specific access only when needed.",
+      "Url": "https://hub.prowler.com/check/org_support_access_not_preapproved"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

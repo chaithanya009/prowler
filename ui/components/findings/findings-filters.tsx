@@ -228,21 +228,10 @@ export const FindingsFilters = ({
       controls={
         <>
           <div className="min-w-[200px] flex-1 md:max-w-[280px]">
-            <ProviderTypeSelector
-              providers={providers}
-              onBatchChange={setPending}
-              selectedValues={getFilterValue("filter[provider_type__in]")}
-            />
+            <ProviderTypeSelector providers={providers} />
           </div>
           <div className="min-w-[200px] flex-1 md:max-w-[280px]">
-            <AccountsSelector
-              providers={providers}
-              onBatchChange={setPending}
-              selectedValues={getFilterValue("filter[provider_id__in]")}
-              selectedProviderTypes={getFilterValue(
-                "filter[provider_type__in]",
-              )}
-            />
+            <AccountsSelector providers={providers} />
           </div>
           {hasCustomFilters && (
             <Button

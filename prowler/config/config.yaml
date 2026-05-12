@@ -611,6 +611,21 @@ mongodbatlas:
   # mongodbatlas.organizations_service_account_secrets_expiration --> Maximum hours for service account secrets validity
   max_service_account_secret_validity_hours: 8
 
+# Okta Configuration
+okta:
+  # okta.user_super_admin_count_limited --> Maximum active Super Admin users
+  max_super_admins: 3
+  # okta.policy_global_session_lifetime_bounded --> Maximum global session lifetime in minutes
+  max_global_session_lifetime_minutes: 720
+  # okta.policy_global_session_idle_timeout_bounded --> Maximum idle timeout in minutes
+  max_global_session_idle_minutes: 120
+  # okta.policy_global_session_mfa_lifetime_bounded --> Maximum MFA re-prompt interval in minutes
+  max_mfa_lifetime_minutes: 720
+  # okta.application_admin_console_session_lifetime_bounded --> Maximum Admin Console session lifetime in minutes
+  max_admin_console_session_lifetime_minutes: 720
+  # okta.application_admin_console_session_lifetime_bounded --> Maximum Admin Console idle timeout in minutes
+  max_admin_console_idle_minutes: 15
+
 # Cloudflare Configuration
 cloudflare:
   # Maximum number of retries for API requests (default is 2)

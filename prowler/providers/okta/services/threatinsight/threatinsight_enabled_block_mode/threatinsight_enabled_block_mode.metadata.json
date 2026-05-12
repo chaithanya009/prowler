@@ -1,0 +1,39 @@
+{
+  "Provider": "okta",
+  "CheckID": "threatinsight_enabled_block_mode",
+  "CheckTitle": "ThreatInsight is enabled in block mode",
+  "CheckType": [],
+  "ServiceName": "threatinsight",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaThreatInsightConfiguration",
+  "ResourceGroup": "security",
+  "Description": "Okta ThreatInsight configuration is evaluated to confirm suspicious credential-attack traffic is logged and blocked, not only audited or ignored.",
+  "Risk": "Without ThreatInsight block mode, malicious IPs associated with password spraying and credential stuffing may continue authentication attempts instead of being blocked by Okta.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ThreatInsight/",
+    "https://help.okta.com/en-us/content/topics/security/threat-insight/configure-threatinsight.htm",
+    "https://help.okta.com/en-us/Content/Topics/Security/threat-insight/configure-threatinsight.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > General.\n2. Open Okta ThreatInsight settings and click Edit.\n3. Select Log and enforce security based on threat level.\n4. Add only reviewed trusted network zones that should be excluded from ThreatInsight evaluation.\n5. Save the setting and allow a few minutes for propagation.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable Okta ThreatInsight in enforcement mode so suspicious credential-attack traffic is logged and blocked.",
+      "Url": "https://hub.prowler.com/check/threatinsight_enabled_block_mode"
+    }
+  },
+  "Categories": [
+    "threat-detection",
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires okta.threatInsights.read. Free-trial orgs can have ThreatInsight capacity limits."
+}

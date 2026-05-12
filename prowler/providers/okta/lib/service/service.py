@@ -52,3 +52,25 @@ class OktaService:
                 raise OktaAPIError(file=__file__, original_exception=error)
 
         raise OktaAPIError(file=__file__, message=f"Request failed for {url}.")
+
+    def _get_paginated(self, path: str, params: dict = None) -> list[dict]:
+        resources = []
+        next_url = None
+
+        while True:
+            if next_url:
+                response = self._get_url(next_url)
+            else:
+                response = self._get(path, params=params)
+
+            resources.extend(response.json())
+            next_url = self._next_link(response.headers.get("Link", ""))
+            if not next_url:
+                return resources
+
+    @staticmethod
+    def _next_link(link_header: str) -> str | None:
+        for link in link_header.split(","):
+            if 'rel="next"' in link:
+                return link.split(";", 1)[0].strip()[1:-1]
+        return None

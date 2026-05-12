@@ -1,0 +1,37 @@
+{
+  "Provider": "okta",
+  "CheckID": "zone_country_block_configured",
+  "CheckTitle": "At least one active block zone exists for admin-defined high-risk countries",
+  "CheckType": [],
+  "ServiceName": "zone",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaNetworkZone",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that at least one active country-based block zone exists.",
+  "Risk": "Without country-based block zones, tenants cannot enforce simple geography-based access restrictions.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/NetworkZone/",
+    "https://help.okta.com/en-us/Content/Topics/Security/network/about-network-zones.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Security > Networks.\n2. Create a network zone using geolocations for countries your organization has approved for blocking.\n3. Configure the zone as a block zone or use it in sign-on policies that deny access.\n4. Activate the zone and document the country selection rationale.\n5. Review the list periodically with security and business owners.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Create at least one active country-based block zone for admin-defined high-risk geographies.",
+      "Url": "https://hub.prowler.com/check/zone_country_block_configured"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

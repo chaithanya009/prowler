@@ -17,6 +17,10 @@ describe("column-get-scans", () => {
 
   it("links the findings filter against the scan's completed_at (what the backend expects)", () => {
     expect(source).toMatch(/attributes:\s*{\s*completed_at\s*}/);
-    expect(source).toMatch(/toLocalDateString\(completed_at\)/);
+    expect(source).toMatch(/toUTCDateString\(completed_at\)/);
+  });
+
+  it("does not use local dates for finding partition filters", () => {
+    expect(source).not.toContain("toLocalDateString(completed_at)");
   });
 });

@@ -371,6 +371,37 @@ describe("useFilterBatch", () => {
       expect(calledUrl).toContain("filter%5Bsearch%5D=my-search");
       expect(calledUrl).toContain("filter%5Bmuted%5D=false");
     });
+
+    it("should remove provider and account filters when All providers and All accounts are applied", () => {
+      // Given
+      setSearchParams({
+        "filter[provider_type__in]": "aws",
+        "filter[provider_id__in]": "provider-1",
+        "filter[severity__in]": "high",
+      });
+      const { result } = renderHook(() => useFilterBatch());
+
+      act(() => {
+        result.current.setPending("provider_type__in", []);
+        result.current.setPending("provider_id__in", []);
+      });
+
+      // When
+      act(() => {
+        result.current.applyAll();
+      });
+
+      // Then
+      const calledUrl = new URL(
+        mockPush.mock.calls[0][0],
+        "https://example.com",
+      );
+      expect(
+        calledUrl.searchParams.get("filter[provider_type__in]"),
+      ).toBeNull();
+      expect(calledUrl.searchParams.get("filter[provider_id__in]")).toBeNull();
+      expect(calledUrl.searchParams.get("filter[severity__in]")).toBe("high");
+    });
   });
 
   // ── discardAll ─────────────────────────────────────────────────────────────

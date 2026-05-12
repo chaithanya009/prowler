@@ -1,0 +1,37 @@
+{
+  "Provider": "okta",
+  "CheckID": "ratelimit_per_client_enforced",
+  "CheckTitle": "Per-client rate limiting is enabled",
+  "CheckType": [],
+  "ServiceName": "ratelimit",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "medium",
+  "ResourceType": "OktaRateLimit",
+  "ResourceGroup": "IAM",
+  "Description": "Checks that per-client rate limiting is enforced.",
+  "Risk": "Without per-client limits, one client can consume shared org rate limit capacity and degrade availability.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/reference/api/rate-limit-settings/",
+    "https://help.okta.com/en-us/Content/Topics/Settings/settings-configure-rate-limiting.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Settings > Account.\n2. Open Client-based rate limiting and click Edit.\n3. Select Enforce and log per client.\n4. Review client capacity allocations and avoid assigning full-org capacity to any single client.\n5. Save and monitor System Log events for client rate-limit activity.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable per-client rate limiting and keep client capacity below full-org capacity so one client cannot consume all login or authorize capacity.",
+      "Url": "https://hub.prowler.com/check/ratelimit_per_client_enforced"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

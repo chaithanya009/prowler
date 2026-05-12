@@ -1,0 +1,38 @@
+{
+  "Provider": "okta",
+  "CheckID": "application_provisioning_deactivation_enabled",
+  "CheckTitle": "Provisioned apps have user deactivation pushed downstream",
+  "CheckType": [],
+  "ServiceName": "application",
+  "SubServiceName": "",
+  "ResourceIdTemplate": "",
+  "Severity": "high",
+  "ResourceType": "OktaApplication",
+  "ResourceGroup": "IAM",
+  "Description": "Checks provisioned apps enable downstream user deactivation.",
+  "Risk": "Provisioned apps that do not receive deactivation can retain access after an Okta user is deactivated.",
+  "RelatedUrl": "",
+  "AdditionalURLs": [
+    "https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationFeatures/",
+    "https://developer.okta.com/docs/reference/api/apps/",
+    "https://help.okta.com/en-us/content/topics/provisioning/lcm/lcm-automatic-deactivate.htm"
+  ],
+  "Remediation": {
+    "Code": {
+      "CLI": "",
+      "NativeIaC": "",
+      "Other": "1. In the Okta Admin Console, go to Applications > Applications.\n2. Open the provisioned app integration and select Provisioning.\n3. Open To App settings and click Edit.\n4. Enable Deactivate User for the app integration.\n5. Save, then test deactivation with a non-production user before relying on it for offboarding.",
+      "Terraform": ""
+    },
+    "Recommendation": {
+      "Text": "Enable downstream user deactivation for provisioned apps so departed or unassigned users lose access outside Okta.",
+      "Url": "https://hub.prowler.com/check/application_provisioning_deactivation_enabled"
+    }
+  },
+  "Categories": [
+    "identity-access"
+  ],
+  "DependsOn": [],
+  "RelatedTo": [],
+  "Notes": "Requires the Okta read scopes documented for the referenced management APIs."
+}

@@ -1,7 +1,7 @@
 import { format, parseISO } from "date-fns";
 import { describe, expect, it } from "vitest";
 
-import { toLocalDateString } from "./date-utils";
+import { toLocalDateString, toUTCDateString } from "./date-utils";
 
 describe("toLocalDateString", () => {
   it("returns undefined for nullish or empty input", () => {
@@ -31,5 +31,24 @@ describe("toLocalDateString", () => {
   it("formats a Date instance using its local calendar day", () => {
     const date = new Date(2026, 3, 20, 10, 0, 0); // April 20, 2026 local
     expect(toLocalDateString(date)).toBe("2026-04-20");
+  });
+});
+
+describe("toUTCDateString", () => {
+  it("returns undefined for nullish, empty, or malformed input", () => {
+    expect(toUTCDateString(undefined)).toBeUndefined();
+    expect(toUTCDateString(null)).toBeUndefined();
+    expect(toUTCDateString("")).toBeUndefined();
+    expect(toUTCDateString("not-a-date")).toBeUndefined();
+  });
+
+  it("formats late UTC timestamps using the UTC calendar day", () => {
+    expect(toUTCDateString("2026-05-11T19:38:30Z")).toBe("2026-05-11");
+  });
+
+  it("formats Date instances using the UTC calendar day", () => {
+    expect(toUTCDateString(new Date("2026-05-11T23:30:00Z"))).toBe(
+      "2026-05-11",
+    );
   });
 });
