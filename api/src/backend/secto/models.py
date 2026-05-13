@@ -269,7 +269,8 @@ class SectoThreat(RowLevelSecurityProtectedModel):
         choices=StatusChoices.choices,
         default=StatusChoices.OPEN,
     )
-    session_id = models.CharField(max_length=255)
+    alert_key = models.CharField(max_length=500)
+    dedup_window_start = models.DateTimeField()
     first_seen = models.DateTimeField()
     last_seen = models.DateTimeField()
     affected_users = models.JSONField(default=list, blank=True)
@@ -287,8 +288,14 @@ class SectoThreat(RowLevelSecurityProtectedModel):
                 statements=["SELECT", "INSERT", "UPDATE", "DELETE"],
             ),
             models.UniqueConstraint(
-                fields=["tenant_id", "provider", "rule_id", "session_id"],
-                name="unique_secto_threat_session_rule",
+                fields=[
+                    "tenant_id",
+                    "provider",
+                    "rule_id",
+                    "alert_key",
+                    "dedup_window_start",
+                ],
+                name="unique_secto_threat_alert",
             ),
         ]
         indexes = [

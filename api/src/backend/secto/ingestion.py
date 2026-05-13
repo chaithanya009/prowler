@@ -12,7 +12,6 @@ from django.db import models
 from api.db_utils import rls_transaction
 from api.models import Provider
 
-from .detectors import detect_session_hijacking
 from .models import (
     M365AuditLog,
     M365SignInLog,
@@ -20,6 +19,7 @@ from .models import (
     OktaSystemLog,
     SectoLogCursor,
 )
+from .rules.runner import run_rules_for_provider
 
 GRAPH_BASE_URL = "https://graph.microsoft.com/beta"
 GRAPH_AUDIT_PATH = "auditLogs/directoryAudits"
@@ -124,10 +124,10 @@ def pull_m365_logs(
             },
         )
 
-    threats = detect_session_hijacking(
+    threats = run_rules_for_provider(
         tenant_id=tenant_id,
         provider_id=provider_id,
-        now=now,
+        provider_type=Provider.ProviderChoices.M365.value,
     )
     return {
         "signin_events": signin_events,

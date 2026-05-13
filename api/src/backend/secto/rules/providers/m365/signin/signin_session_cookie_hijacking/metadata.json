@@ -1,0 +1,9 @@
+{
+  "rule_id": "signin_session_cookie_hijacking",
+  "provider": "m365",
+  "title": "Microsoft 365 session cookie hijacking",
+  "description": "Office Home authentication was followed by browser access from a different country in the same Microsoft 365 session.",
+  "severity": "critical",
+  "lookback_minutes": 1440,
+  "dedup_window_minutes": 1440
+}

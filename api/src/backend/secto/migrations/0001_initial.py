@@ -253,7 +253,8 @@ class Migration(migrations.Migration):
                         max_length=20,
                     ),
                 ),
-                ("session_id", models.CharField(max_length=255)),
+                ("alert_key", models.CharField(max_length=500)),
+                ("dedup_window_start", models.DateTimeField()),
                 ("first_seen", models.DateTimeField()),
                 ("last_seen", models.DateTimeField()),
                 ("affected_users", models.JSONField(blank=True, default=list)),
@@ -356,8 +357,14 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="sectothreat",
             constraint=models.UniqueConstraint(
-                fields=("tenant_id", "provider", "rule_id", "session_id"),
-                name="unique_secto_threat_session_rule",
+                fields=(
+                    "tenant_id",
+                    "provider",
+                    "rule_id",
+                    "alert_key",
+                    "dedup_window_start",
+                ),
+                name="unique_secto_threat_alert",
             ),
         ),
     ]

@@ -10,7 +10,6 @@ from tasks.tasks import perform_scan_task
 
 from api.models import Provider, ProviderSecret, Scan, StateChoices
 from api.v1.serializers import BaseWriteProviderSecretSerializer
-from secto.detectors import OFFICE_HOME_APP_ID, detect_session_hijacking
 from secto.ingestion import pull_m365_logs, pull_okta_logs
 from secto.models import (
     M365AuditLog,
@@ -20,7 +19,10 @@ from secto.models import (
     SectoLogCursor,
     SectoThreat,
 )
+from secto.rules.runner import run_rules_for_provider
 from secto.schedules import ensure_log_pull_schedule
+
+OFFICE_HOME_APP_ID = "4765445b-32c6-49b0-83e6-1d93765276ca"
 
 
 @pytest.mark.django_db
@@ -30,7 +32,7 @@ class TestSectoSessionHijacking:
     ):
         tenant = tenants_fixture[0]
         provider = providers_fixture[5]
-        now = datetime(2026, 5, 9, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
 
         M365SignInLog.objects.create(
             tenant_id=tenant.id,
@@ -69,23 +71,32 @@ class TestSectoSessionHijacking:
             raw_event={"id": "sharepoint"},
         )
 
-        threats = detect_session_hijacking(
-            tenant_id=str(tenant.id), provider_id=str(provider.id), now=now
+        threats = run_rules_for_provider(
+            tenant_id=str(tenant.id),
+            provider_id=str(provider.id),
+            provider_type=Provider.ProviderChoices.M365.value,
         )
 
         assert len(threats) == 1
         threat = threats[0]
         assert threat.rule_id == "signin_session_cookie_hijacking"
-        assert threat.session_id == "session-1"
+        assert threat.alert_key == "session-1"
+        assert threat.dedup_window_start == datetime.fromtimestamp(
+            int((now - timedelta(minutes=10)).timestamp()) // 86400 * 86400,
+            tz=timezone.utc,
+        )
         assert threat.severity == SectoThreat.SeverityChoices.CRITICAL
         assert threat.affected_users == ["user@example.com"]
         assert threat.source_ip_addresses == ["203.0.113.20"]
         assert threat.countries == ["CN"]
+        assert threat.evidence["applications"] == ["SharePoint Online"]
         assert threat.first_seen == now - timedelta(minutes=10)
         assert threat.last_seen == now - timedelta(minutes=5)
 
-        detect_session_hijacking(
-            tenant_id=str(tenant.id), provider_id=str(provider.id), now=now
+        run_rules_for_provider(
+            tenant_id=str(tenant.id),
+            provider_id=str(provider.id),
+            provider_type=Provider.ProviderChoices.M365.value,
         )
         assert SectoThreat.objects.count() == 1
 
@@ -94,7 +105,7 @@ class TestSectoSessionHijacking:
     ):
         tenant = tenants_fixture[0]
         provider = providers_fixture[5]
-        now = datetime(2026, 5, 9, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
 
         for source_id, app_id, minutes in (
             ("office-home", OFFICE_HOME_APP_ID, 10),
@@ -117,8 +128,10 @@ class TestSectoSessionHijacking:
                 raw_event={"id": source_id},
             )
 
-        threats = detect_session_hijacking(
-            tenant_id=str(tenant.id), provider_id=str(provider.id), now=now
+        threats = run_rules_for_provider(
+            tenant_id=str(tenant.id),
+            provider_id=str(provider.id),
+            provider_type=Provider.ProviderChoices.M365.value,
         )
 
         assert threats == []
@@ -244,12 +257,14 @@ class TestSectoIngestion:
             },
         )
 
-        now = datetime(2026, 5, 9, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
         signin_body = {
             "value": [
                 {
                     "id": "office-home",
-                    "createdDateTime": "2026-05-09T11:50:00Z",
+                    "createdDateTime": (now - timedelta(minutes=10))
+                    .isoformat()
+                    .replace("+00:00", "Z"),
                     "appId": OFFICE_HOME_APP_ID,
                     "appDisplayName": "OfficeHome",
                     "clientAppUsed": "Browser",
@@ -264,7 +279,9 @@ class TestSectoIngestion:
                 },
                 {
                     "id": "sharepoint",
-                    "createdDateTime": "2026-05-09T11:55:00Z",
+                    "createdDateTime": (now - timedelta(minutes=5))
+                    .isoformat()
+                    .replace("+00:00", "Z"),
                     "appId": "00000003-0000-0ff1-ce00-000000000000",
                     "appDisplayName": "SharePoint Online",
                     "clientAppUsed": "Browser",
@@ -283,7 +300,9 @@ class TestSectoIngestion:
             "value": [
                 {
                     "id": "audit-1",
-                    "activityDateTime": "2026-05-09T11:56:00Z",
+                    "activityDateTime": (now - timedelta(minutes=4))
+                    .isoformat()
+                    .replace("+00:00", "Z"),
                     "activityDisplayName": "Update user",
                     "category": "UserManagement",
                     "operationType": "Update",
@@ -295,7 +314,9 @@ class TestSectoIngestion:
         }
         unified_audit_record = {
             "Id": "unified-1",
-            "CreationTime": "2026-05-09T11:57:00Z",
+            "CreationTime": (now - timedelta(minutes=3))
+            .isoformat()
+            .replace("+00:00", "Z"),
             "RecordType": 8,
             "Operation": "FileAccessed",
             "Workload": "SharePoint",
@@ -349,7 +370,7 @@ class TestSectoIngestion:
         assert M365SignInLog.objects.count() == 2
         assert M365AuditLog.objects.get().activity_display_name == "Update user"
         assert M365UnifiedAuditLog.objects.get().operation == "FileAccessed"
-        assert SectoThreat.objects.get().session_id == "session-3"
+        assert SectoThreat.objects.get().alert_key == "session-3"
         cursor = SectoLogCursor.objects.get(provider=provider)
         assert cursor.signin_cursor_at == now
         assert cursor.audit_cursor_at == now
